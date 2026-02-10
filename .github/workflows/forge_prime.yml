@@ -3,41 +3,20 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-permissions:
-  contents: write
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container:
+      image: kivy/buildozer:latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential git ffmpeg libsdl2-dev libsdl2-image-dev \
-            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev \
-            libavcodec-dev zlib1g-dev libgstreamer1.0-dev openjdk-17-jdk zip unzip autoconf \
-            libtool pkg-config libffi-dev libssl-dev
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Build Tools
-        run: |
-          pip install --upgrade pip
-          pip install --upgrade buildozer cython virtualenv
-
       - name: Build with Buildozer
         run: |
-          # Create the directory and manually accept licenses to prevent 'yes' pipe break
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | buildozer android debug
-        env:
-          ACCEPT_SDK_LICENSE: 1
-
+          # The container already has all dependencies. Just weld.
+          pip install --upgrade cython
+          buildozer android debug
+        
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
