@@ -1,8 +1,8 @@
 name: Apex Core Cloud Forge
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,13 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Build with Buildozer
         uses: ArtemSerebennikov/buildozer-action@v1
         with:
           buildozer_version: master
           python_version: 3.11
-
+          command: yes | buildozer android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
