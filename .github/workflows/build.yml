@@ -1,6 +1,11 @@
 name: Apex Core Cloud Forge
 on:
   workflow_dispatch:
+    inputs:
+      force_run:
+        description: 'Force Ignition'
+        required: false
+        default: 'true'
   push:
     branches: [ main ]
 
@@ -9,26 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Get Date
-        id: get-date
-        run: echo "date=$(date -u +'%Y%m%d')" >> $GITHUB_OUTPUT
-
-      - name: Cache Buildozer
-        uses: actions/cache@v4
-        with:
-          path: .buildozer
-          key: buildozer-${{ runner.os }}-${{ steps.get-date.outputs.date }}
-
       - name: Build with Buildozer
         uses: ArtemSerebennikov/buildozer-action@v1
-        continue-on-error: true
         with:
           buildozer_version: master
           python_version: 3.11
-
-      - name: Upload APK Artifact
-        uses: actions/collect-build-artifacts@v3
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
+          name: Apex-Core-v600
           path: bin/*.apk
-# Forced Forge Refresh: Commit f6bbf0a-v2
