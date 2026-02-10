@@ -12,12 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build with Buildozer
-        uses: ArtemSerebennikov/buildozer-action@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          buildozer_version: master
-          python_version: 3.11
-          command: yes | buildozer android debug
+          python_version: '3.11'
+
+      - name: Install Verified Buildozer
+        run: |
+          pip install --upgrade buildozer
+          pip install --upgrade cython
+
+      - name: Build with Buildozer
+        run: yes | buildozer android debug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
