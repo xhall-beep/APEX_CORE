@@ -1,15 +1,13 @@
-name: Apex-Forge-Prime
+name: Apex Forge Prime
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -17,8 +15,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
+            python3-pip \
             build-essential \
             git \
+            python3-dev \
             ffmpeg \
             libsdl2-dev \
             libsdl2-image-dev \
@@ -29,27 +29,19 @@ jobs:
             libavformat-dev \
             libavcodec-dev \
             zlib1g-dev \
-            libgstreamer1.0 \
+            libgstreamer1.0-dev \
             gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            libffi-dev \
-            libssl-dev \
-            openjdk-17-jdk \
-            zip \
-            unzip \
-            autoconf \
-            libtool \
-            pkg-config
+            gstreamer1.0-plugins-good
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Buildozer & Cython
+      - name: Install Build Tools
         run: |
           pip install --upgrade pip
-          pip install --upgrade buildozer cython
+          pip install --upgrade bulldozer cython virtualenv
 
       - name: Build with Buildozer
         run: yes | buildozer android debug
