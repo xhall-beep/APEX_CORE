@@ -5,34 +5,20 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Force System Repair & Dependency Injection
-        run: |
-          # Bypassing the Exit Code 100 / Broken Package Wall
-          sudo rm -rf /var/lib/apt/lists/*
-          sudo apt-get update
-          sudo apt-get install -f
-          sudo apt-get install -y build-essential git ffmpeg libsdl2-dev libsdl2-image-dev \
-            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev \
-            libavcodec-dev zlib1g-dev libgstreamer1.0-dev openjdk-17-jdk zip unzip autoconf \
-            libtool pkg-config libffi-dev libssl-dev python3-pip python3-setuptools
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - name: APEX CORE INDUSTRIAL FORGE
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          python-version: '3.11'
+          buildozer_version: stable
+          python_version: 3.11
+          buildozer_command: android debug
+          repository_root: .
 
-      - name: Hyper-Optimize Build Tools
-        run: |
-          pip install --upgrade pip
-          pip install --user --upgrade buildozer cython==0.29.33 virtualenv
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Execute Industrial Forge
-        run: |
-          export APP_ANDROID_ACCEPT_SDK_LICENSE=1
-          # Manually accept licenses and trigger build
-          yes | buildozer android debug
+      - name: Upload APEX APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Apex-Core-v600
+          path: bin/*.apk
