@@ -7,31 +7,17 @@ permissions:
   contents: write
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
       - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip \
-            build-essential \
-            git \
-            python3-dev \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good
+          sudo apt-get install -y build-essential git ffmpeg libsdl2-dev libsdl2-image-dev \
+            libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev \
+            libavcodec-dev zlib1g-dev libgstreamer1.0-dev openjdk-17-jdk zip unzip autoconf \
+            libtool pkg-config libffi-dev libssl-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -41,10 +27,16 @@ jobs:
       - name: Install Build Tools
         run: |
           pip install --upgrade pip
-          pip install --upgrade bulldozer cython virtualenv
+          pip install --upgrade buildozer cython virtualenv
 
       - name: Build with Buildozer
-        run: yes | buildozer android debug
+        run: |
+          # Create the directory and manually accept licenses to prevent 'yes' pipe break
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | buildozer android debug
+        env:
+          ACCEPT_SDK_LICENSE: 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
