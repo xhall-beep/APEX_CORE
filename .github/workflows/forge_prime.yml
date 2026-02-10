@@ -9,19 +9,47 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            ffmpeg \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0 \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            libffi-dev \
+            libssl-dev \
+            openjdk-17-jdk \
+            zip \
+            unzip \
+            autoconf \
+            libtool \
+            pkg-config
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python_version: '3.11'
+          python-version: '3.11'
 
-      - name: Install Verified Buildozer
+      - name: Install Buildozer & Cython
         run: |
-          pip install --upgrade buildozer
-          pip install --upgrade cython
+          pip install --upgrade pip
+          pip install --upgrade buildozer cython
 
       - name: Build with Buildozer
         run: yes | buildozer android debug
