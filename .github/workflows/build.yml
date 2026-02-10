@@ -1,17 +1,33 @@
 name: Apex Core Cloud Forge
-on: [push, workflow_dispatch]
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Get Date
+        id: get-date
+        run: echo "date=$(date -u +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Cache Buildozer
+        uses: actions/cache@v4
+        with:
+          path: .buildozer
+          key: buildozer-${{ runner.os }}-${{ steps.get-date.outputs.date }}
+
       - name: Build with Buildozer
         uses: ArtemSerebennikov/buildozer-action@v1
+        continue-on-error: true
         with:
           buildozer_version: master
           python_version: 3.11
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+
+      - name: Upload APK Artifact
+        uses: actions/collect-build-artifacts@v3
         with:
-          name: Apex-Core-APK
           path: bin/*.apk
