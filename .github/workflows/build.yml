@@ -1,4 +1,4 @@
-name: Apex Core Cloud Forge
+name: Apex Core Forge V2
 on:
   push:
     branches: [ main ]
