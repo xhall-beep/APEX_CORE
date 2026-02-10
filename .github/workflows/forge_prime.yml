@@ -13,7 +13,8 @@ jobs:
 
       - name: Build with Buildozer
         run: |
-          # The container already has all dependencies. Just weld.
+          # Allow Buildozer to run as root inside the container
+          export BUILDOZER_ALLOW_KIVY_AS_ROOT=1
           pip install --upgrade cython
           buildozer android debug
         
