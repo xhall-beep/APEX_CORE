@@ -20,8 +20,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          lfs: false
+        with:
+          fetch-depth: 0
           clean: true
 
+      - name: Trust Workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: APEX CORE INDUSTRIAL WELD & OPTIMIZE
         run: |
           # Elevate permissions and optimize environment
