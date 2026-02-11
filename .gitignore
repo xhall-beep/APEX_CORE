@@ -1,1 +1,7 @@
-.buildozer/
+# Sovereign Vault - Do Not Push
+.env
+secrets.json
+*.log
+__pycache__/
+*.pyc
+debian_core.log
