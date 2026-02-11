@@ -1,18 +1,11 @@
 [app]
-title = APEX_CORE
-package.name = apexcore
+title = APEX_CORE_V84
+package.name = apex_core
 package.domain = org.svontz
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
-version = 0.6.0
-requirements = python3,kivy
+include_exts = py,png,jpg,kv,atlas,js,txt,json
+requirements = python3,kivy,requests,frida-tools,selenium
 orientation = portrait
-fullscreen = 0
-android.archs = arm64-v8a
-android.allow_backup = True
-android.accept_sdk_license = True
-p4a.branch = master
-
-[buildozer]
-log_level = 2
-warn_on_root = 0
+fullscreen = 1
+android.permissions = INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE,SYSTEM_ALERT_WINDOW
+android.api = 33
