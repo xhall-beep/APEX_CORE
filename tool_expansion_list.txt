@@ -1,0 +1,4 @@
+https://github.com/prowler-cloud/prowler
+https://github.com/projectdiscovery/nuclei
+https://github.com/rapid7/metasploit-framework
+https://github.com/OpenInterpreter/open-interpreter

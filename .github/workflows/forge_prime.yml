@@ -10,6 +10,9 @@ jobs:
       image: kivy/buildozer:latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
 
       - name: APEX CORE INDUSTRIAL WELD & OPTIMIZE
         run: |

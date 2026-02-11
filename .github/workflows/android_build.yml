@@ -9,6 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
+          lfs: true
+        with:
           submodules: recursive
       - name: Install Buildozer & Master Deps
         run: |
