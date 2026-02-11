@@ -17,10 +17,12 @@ jobs:
           git lfs install
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          lfs: false
+          fetch-depth: 1
+          submodules: false
+          filter: "blob:none"
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+          submodules: false
           clean: true
         with:
           submodules: false
