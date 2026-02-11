@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install git-lfs
+      - name: Cleanup Disk Space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
         run: | 
           sudo apt-get update && sudo apt-get install -y git-lfs
           git lfs install
