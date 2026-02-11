@@ -1,4 +1,4 @@
-name: 🔱 ApexYX Sovereign Forge
+name: 🔱 ApexYX Sovereign Forge (Diagnostic Mode)
 on:
   push:
     branches: [ main ]
@@ -8,11 +8,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: System Resource Audit
+        run: |
+          echo "🌐 Checking Cloud Environment..."
+          df -h
+          free -m
+          python3 --version
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Buildozer Dependencies
+
+      - name: Install Master Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip build-essential git ffmpeg libsdl2-dev \
@@ -20,12 +32,23 @@ jobs:
           libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
           libgstreamer1.0-gstreamer-lite-dev libgstreamer1.0-dev openjdk-17-jdk \
           zip unzip autoconf automake libtool pkg-config cmake libffi-dev libssl-dev
-      - name: Install Buildozer & Cython
+
+      - name: Install Buildozer & Cython (Precision Versioning)
         run: pip install --upgrade buildozer cython==0.29.36
-      - name: Build Sovereign APK
-        run: yes | buildozer -v android debug
-      - name: Upload Artifact
+
+      - name: 🔱 FORGE EXECUTION (VERBOSE)
+        run: |
+          echo "🚀 Starting High-Pressure Build..."
+          export P4A_DEBUG=1
+          yes | buildozer -v android debug || {
+            echo "❌ FORGE CRITICAL FAILURE"
+            echo "🔍 DUMPING BUILDOZER LOGS..."
+            cat .buildozer/android/platform/build-*/build.log || echo "No log found."
+            exit 1
+          }
+
+      - name: Upload Diagnostic APK
         uses: actions/upload-artifact@v4
         with:
-          name: ApexYX-Sovereign-V36
+          name: ApexYX-Sovereign-Diagnostic
           path: bin/*.apk
