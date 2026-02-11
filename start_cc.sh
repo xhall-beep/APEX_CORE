@@ -1,3 +1,4 @@
 #!/bin/bash
-echo "🔱 STARTING APEX COMMAND CENTER ON PORT 8080..."
-cd ./deliveries && python3 -m http.server 8080
+echo "🔱 STARTING APEX HIGH-AUTHORITY CONTROL API..."
+export FLASK_APP=control_api.py
+python3 control_api.py
