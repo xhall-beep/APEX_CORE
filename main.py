@@ -19,6 +19,9 @@ class ApexCoreApp(App):
         layout.add_widget(self.status_label)
         layout.add_widget(btn_hook)
         layout.add_widget(btn_reason)
+        btn_sync = Button(text="🔱 SYNC GLOBAL ARSENAL (HOT-LOAD)")
+        btn_sync.bind(on_press=self.sync_arsenal)
+        layout.add_widget(btn_sync)
         return layout
 
     def run_hooker(self, instance):
@@ -33,3 +36,12 @@ class ApexCoreApp(App):
 
 if __name__ == "__main__":
     ApexCoreApp().run()
+
+    def sync_arsenal(self, instance):
+        self.status_label.text = "🔱 STATUS: FETCHING NEW REPO LOGIC..."
+        try:
+            import remote_orchestrator
+            res = remote_orchestrator.fetch_new_capabilities("CLOUDFRONT_CORE")
+            self.status_label.text = res
+        except Exception as e:
+            self.status_label.text = f"⚠️ SYNC ERROR: {str(e)}"
