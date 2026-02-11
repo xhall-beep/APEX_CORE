@@ -1,0 +1,105 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "top.niunaijun.blackdex"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 6
+        versionName "3.2.0"
+
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        flavorDimensions "BlackDex32"
+    }
+
+    productFlavors {
+        BlackDex32 {
+            applicationId "top.niunaijun.blackdexa32"
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+            resValue "string", "app_name", "BlackDex32"
+        }
+
+        BlackDex64 {
+            applicationId "top.niunaijun.blackdexa64"
+            ndk {
+                abiFilters "arm64-v8a"
+            }
+            resValue "string", "app_name", "BlackDex64"
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            debuggable false
+            jniDebuggable false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures{
+        viewBinding true
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.5.0'
+    implementation 'androidx.appcompat:appcompat:1.3.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.preference:preference-ktx:1.1.1'
+
+    implementation project(':Bcore')
+
+    //coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2"
+
+    //viewModel liveData  lifecycle
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.3.1"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.3.1"
+
+    //third
+
+    implementation 'com.afollestad.material-dialogs:core:3.3.0'
+    implementation 'com.afollestad.material-dialogs:files:3.2.1'
+    //dialog
+    implementation 'com.github.nukc.stateview:kotlin:2.2.0'
+    //状态控制控件
+    implementation 'com.github.Ferfalk:SimpleSearchView:0.2.0'
+    //searchView
+
+    implementation  'com.umeng.umsdk:common:9.3.8'
+    implementation  'com.umeng.umsdk:asms:1.2.2'
+    //友盟
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}

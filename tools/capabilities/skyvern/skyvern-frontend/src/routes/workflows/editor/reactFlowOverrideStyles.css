@@ -1,0 +1,44 @@
+.react-flow__panel.top.center {
+  margin: 0;
+  top: 2rem;
+  width: calc(100% - 3rem);
+}
+
+.react-flow__panel.top.right {
+  margin: 0;
+  top: 7.75rem;
+  right: 1.5rem;
+}
+
+.react-flow__node-regular {
+  @apply bg-slate-elevation3;
+}
+
+/* Smooth transitions for node position and size changes */
+.react-flow__node {
+  transition: transform 0.2s ease-out;
+}
+
+/* Smooth transitions for edge position updates */
+.react-flow__edge path,
+.react-flow__edge-path {
+  transition: d 0.2s ease-out;
+}
+
+.react-flow__edge text,
+.react-flow__edge-text {
+  transition: transform 0.2s ease-out;
+}
+
+.react-flow__handle-top {
+  top: 3px;
+}
+
+.react-flow__handle-bottom {
+  bottom: 3px;
+}
+
+.react-flow__attribution {
+  background-color: rgb(2 6 23);
+  color: white;
+}

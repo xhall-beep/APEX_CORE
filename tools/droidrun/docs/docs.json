@@ -1,0 +1,118 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "almond",
+  "name": "DroidRun",
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "favicon": "/favicon.png",
+  "icons": {
+    "library": "lucide"
+  },
+  "styles": [
+    "/custom.css"
+  ],
+  "integrations": {
+    "posthog": {
+        "apiKey": "phc_3BmiVdnS2Wvlm007eHGZLBPwRFCVVWzIZXbB0u3ZH1d",
+        "apiHost": "https://pineapple.droidrun.ai"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "/v4/overview",
+              "/v4/quickstart"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "/v4/features/structured-output",
+              "/v4/features/credentials",
+              "/v4/features/app-cards",
+              "/v4/features/custom-tools",
+              "/v4/features/custom-variables",
+              "/v4/features/tracing",
+              "/v4/features/telemetry"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "/v4/guides/overview",
+              "/v4/guides/device-setup",
+              "/v4/guides/cli",
+              "/v4/guides/docker",
+              "/v4/guides/migration-v3-to-v4"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "/v4/concepts/architecture",
+              "/v4/concepts/scripter-agent",
+              "/v4/concepts/shared-state",
+              "/v4/concepts/events-and-workflows",
+              "/v4/concepts/prompts"
+            ]
+          },
+          {
+            "group": "SDK Reference",
+            "pages": [
+              "/v4/sdk/reference",
+              "/v4/sdk/droid-agent",
+              "/v4/sdk/adb-tools",
+              "/v4/sdk/ios-tools",
+              "/v4/sdk/base-tools",
+              "/v4/sdk/configuration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Cloud",
+        "icon": "cloud",
+        "href": "https://docs.mobilerun.ai"
+      },
+      {
+        "tab": "GitHub",
+        "icon": "github",
+        "href": "https://github.com/droidrun/droidrun"
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://droidrun.ai"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Join Discord",
+      "href": "https://discord.gg/gdekvkJFvn"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/droidrun/droidrun",
+      "x": "https://x.com/droid_run",
+      "discord": "https://discord.gg/gdekvkJFvn",
+      "website": "https://droidrun.ai"
+    }
+  },
+  "errors": {
+    "404": {
+      "redirect": false
+    }
+  }
+}

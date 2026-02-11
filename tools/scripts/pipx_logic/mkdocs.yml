@@ -1,0 +1,54 @@
+site_name: pipx
+site_description: execute binaries from Python packages in isolated environments
+
+theme:
+  name: "material"
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+repo_name: pypa/pipx
+repo_url: https://github.com/pypa/pipx
+edit_uri: edit/main/docs/
+extra:
+  analytics:
+    provider: 'google'
+    property: 'UA-90243909-2'
+
+
+nav:
+  - Home: "README.md"
+  - Installation: "installation.md"
+  - Getting Started: "getting-started.md"
+  - Docs: "docs.md"
+  - Troubleshooting: "troubleshooting.md"
+  - Examples: "examples.md"
+  - Comparison to Other Tools: "comparisons.md"
+  - How pipx works: "how-pipx-works.md"
+  - Programs to Try: "programs-to-try.md"
+  - Contributing: "contributing.md"
+  - Changelog: "changelog.md"
+
+markdown_extensions:
+  - markdown_gfm_admonition  # GitHub's admonition (alert) syntax
+  - footnotes
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search:
+      lang: en
+  - gen-files:
+      scripts:
+        - scripts/gen_doc_pages.py
+  - macros

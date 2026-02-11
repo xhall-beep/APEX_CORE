@@ -1,0 +1,36 @@
+name: 🔱 Apex Forge Prime (Total Integration)
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Buildozer & Master Deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip build-essential git ffmpeg libsdl2-dev \
+          libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
+          libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk \
+          zip unzip autoconf automake libtool pkg-config cmake libffi-dev libssl-dev
+          pip install --upgrade buildozer cython==0.29.36
+      - name: 🔱 FORGE APK (VERBOSE MODE)
+        run: |
+          export P4A_DEBUG=1
+          # Attempt build, capture errors for Termux live-stream
+          yes | buildozer -v android debug || {
+            echo "❌ FORGE CRITICAL FAILURE"
+            exit 1
+          }
+      - name: 📤 UPLOAD SOVEREIGN APK & LOGS
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sovereign-V37-Full
+          path: |
+            bin/*.apk
+            .buildozer/android/platform/build-*/build.log
