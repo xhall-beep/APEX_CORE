@@ -21,7 +21,14 @@ jobs:
         run: | 
           sudo apt-get update && sudo apt-get install -y git-lfs
           git lfs install
-      - uses: actions/checkout@v4
+            - name: Bypass Git Checkout
+        run: echo "🔱 VOID WELD ACTIVE"
+      - name: Nuclear Disk Clean
+        run: | 
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         with:
           sparse-checkout: |
             .github
