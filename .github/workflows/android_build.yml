@@ -15,7 +15,6 @@ jobs:
         with:
           fetch-depth: 0
           clean: true
-          lfs: true
         with:
           submodules: recursive
       - name: Install Buildozer & Master Deps
