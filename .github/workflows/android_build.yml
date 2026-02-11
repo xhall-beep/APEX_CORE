@@ -4,6 +4,8 @@ on:
     branches: [ main ]
   workflow_dispatch:
 jobs:
+  permissions:
+    contents: write
   build:
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +18,7 @@ jobs:
           fetch-depth: 0
           clean: true
         with:
-          submodules: recursive
+          submodules: false
       - name: Install Buildozer & Master Deps
         run: |
           sudo apt-get update
