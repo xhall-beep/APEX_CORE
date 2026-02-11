@@ -1,4 +1,4 @@
-name: 🔱 ApexYX Sovereign Forge (Diagnostic Mode)
+name: 🔱 Apex Forge Prime (Total Integration)
 on:
   push:
     branches: [ main ]
@@ -10,45 +10,27 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
-
-      - name: System Resource Audit
-        run: |
-          echo "🌐 Checking Cloud Environment..."
-          df -h
-          free -m
-          python3 --version
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Master Dependencies
+      - name: Install Buildozer & Master Deps
         run: |
           sudo apt-get update
           sudo apt-get install -y python3-pip build-essential git ffmpeg libsdl2-dev \
           libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev \
-          libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev \
-          libgstreamer1.0-gstreamer-lite-dev libgstreamer1.0-dev openjdk-17-jdk \
+          libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev openjdk-17-jdk \
           zip unzip autoconf automake libtool pkg-config cmake libffi-dev libssl-dev
-
-      - name: Install Buildozer & Cython (Precision Versioning)
-        run: pip install --upgrade buildozer cython==0.29.36
-
-      - name: 🔱 FORGE EXECUTION (VERBOSE)
+          pip install --upgrade buildozer cython==0.29.36
+      - name: 🔱 FORGE APK (VERBOSE MODE)
         run: |
-          echo "🚀 Starting High-Pressure Build..."
           export P4A_DEBUG=1
+          # Attempt build, capture errors for Termux live-stream
           yes | buildozer -v android debug || {
             echo "❌ FORGE CRITICAL FAILURE"
-            echo "🔍 DUMPING BUILDOZER LOGS..."
-            cat .buildozer/android/platform/build-*/build.log || echo "No log found."
             exit 1
           }
-
-      - name: Upload Diagnostic APK
+      - name: 📤 UPLOAD SOVEREIGN APK & LOGS
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ApexYX-Sovereign-Diagnostic
-          path: bin/*.apk
+          name: Sovereign-V37-Full
+          path: |
+            bin/*.apk
+            .buildozer/android/platform/build-*/build.log

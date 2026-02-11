@@ -1,25 +1,44 @@
 #!/bin/bash
 cd ~/APEX_CORE
-echo "🚀 [REECH] Purging metadata and forcing Grand Master Uplink..."
-find tools -name ".git" -type d -exec rm -rf {} + 2>/dev/null
-git add .
-git commit -m "🔱 ApexYX V35.2: Omni-Manifest Engaged"
-git push -u origin main --force
-echo "📡 [MONITOR] Watching the Forge Heartbeat..."
+echo "🚀 [REECH] Injecting Diagnostic Uplink..."
+git commit --allow-empty -m "🔱 V36.2: Log-Streamer Integration Engaged"
+git push origin main --force
+
+echo "📡 [MONITOR] Establishing Live Sovereign Log Stream..."
 while true; do
+    # Fetch the most recent Run ID
+    RUN_ID=$(gh run list --limit 1 --repo xhall-beep/ApexYX-Sovereign --json databaseId -q '.[0].databaseId')
+    
+    if [ -z "$RUN_ID" ] || [ "$RUN_ID" == "null" ]; then
+        clear
+        echo "🔱 APEX SOVEREIGN LIVE MONITORING (V36.2)"
+        echo "------------------------------------------------"
+        echo "💤 Initializing Cloud Runner (Waiting for ID)..."
+        sleep 10
+        continue
+    fi
+
+    # Fetch Status
+    STATUS=$(gh run view $RUN_ID --repo xhall-beep/ApexYX-Sovereign --json status -q '.status')
+    
     clear
-    echo "🔱 APEX SOVEREIGN LIVE MONITORING (V35.2)"
+    echo "🔱 APEX SOVEREIGN LIVE MONITORING (V36.2)"
     echo "------------------------------------------------"
-    gh run list --limit 1 --repo xhall-beep/ApexYX-Sovereign
-    RUN_DATA=$(gh run list --limit 1 --repo xhall-beep/ApexYX-Sovereign --json status,conclusion)
-    STATUS=$(echo $RUN_DATA | jq -r '.[0].status')
+    echo "💎 RUN ID: $RUN_ID"
+    echo "📡 STATUS: $STATUS"
+    echo "------------------------------------------------"
+
     if [ "$STATUS" == "completed" ]; then
-        echo "✅ FORGE RESULT: $(echo $RUN_DATA | jq -r '.[0].conclusion')"
+        CONCLUSION=$(gh run view $RUN_ID --repo xhall-beep/ApexYX-Sovereign --json conclusion -q '.conclusion')
+        echo "✅ FORGE RESULT: $CONCLUSION"
+        if [ "$CONCLUSION" == "failure" ]; then
+            echo "🔍 CRITICAL ERROR DETECTED. STREAMING FAILURES:"
+            gh run view $RUN_ID --log-failed --repo xhall-beep/ApexYX-Sovereign
+        fi
         break
     elif [ "$STATUS" == "in_progress" ]; then
-        echo "⏳ The Cloud is hammering your Sovereignty into shape..."
-    else
-        echo "💤 Awaiting Action trigger..."
+        echo "⏳ LIVE FORGE LOGS (Last 10 lines):"
+        gh run view $RUN_ID --log --repo xhall-beep/ApexYX-Sovereign | tail -n 10
     fi
-    sleep 10
+    sleep 15
 done
