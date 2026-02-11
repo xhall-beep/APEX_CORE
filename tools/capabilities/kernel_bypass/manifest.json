@@ -1,0 +1,5 @@
+{
+  "authority_level": "FOUNDER_ROOT",
+  "tools": ["frida", "magisk_logic", "bettercap", "drozer"],
+  "bypass_protocols": ["Accessibility_Service_Abuse", "IPC_Injection"]
+}
