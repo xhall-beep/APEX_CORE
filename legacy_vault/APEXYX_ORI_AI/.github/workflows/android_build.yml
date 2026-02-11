@@ -1,0 +1,36 @@
+name: Sovereign APK Forge
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Buildozer Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libffi-dev perl python3-pip zip unzip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libsqlite3-dev
+          pip install --upgrade pip
+          pip install buildozer cython requests
+
+      - name: Build with Buildozer
+        run: |
+          yes | buildozer android debug
+        env:
+          ACCEPT_SDK_LICENSE: "yes"
+
+      - name: Manifest Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: bin/*.apk
+          tag_name: v${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

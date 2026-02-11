@@ -1,0 +1,6 @@
+{
+    "master_node": "10.0.0.203",
+    "port": 5005,
+    "agent_id": "REECH_PIXEL_8_PRO",
+    "unrestricted_mode": true
+}

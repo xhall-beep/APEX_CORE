@@ -1,0 +1,23 @@
+name: Apexyx Soul Forge
+on: [push, workflow_dispatch]
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    container:
+      image: kivy/buildozer:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sovereign Industrial Build
+        run: |
+          # Use the container's pre-installed buildozer
+          # 'yes' automatically handles all SDK/NDK license prompts
+          yes | buildozer android debug
+        env:
+          APP_ANDROID_ACCEPT_SDK_LICENSE: 1
+
+      - name: Archive Sovereign APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: APEXYX_V1_SUCCESS
+          path: bin/*.apk

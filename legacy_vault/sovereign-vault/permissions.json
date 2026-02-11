@@ -1,0 +1,10 @@
+{
+  "founder": "xhall-beep",
+  "access_level": "Sovereign_Omni",
+  "agent_recursion": true,
+  "authorized_squads": ["Prospecting", "Closer", "Concierge"],
+  "financial_guardrails": {
+    "mothers_rule": "15%",
+    "hard_asset_anchor": "10%"
+  }
+}

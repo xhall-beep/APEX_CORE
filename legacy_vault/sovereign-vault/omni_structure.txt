@@ -1,0 +1,6 @@
+.github
+.gitignore
+app.py
+index.html
+nohup.out
+requirements.txt
