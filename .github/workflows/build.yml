@@ -10,15 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          clean: false # Prevents checkout from wiping the "safe" state
-
-      - name: Hard-Asset Git Reclamation
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git config --global --add safe.directory '*'
-          # Force the runner to forget the "dubious" origin
-          chown -R runner:docker "$GITHUB_WORKSPACE"
+          fetch-depth: 1 # Shallow clone to minimize Git metadata interference
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,8 +27,15 @@ jobs:
 
       - name: Sovereign Build Execution
         run: |
+          # 🔱 Bypassing Git Code 128 via Static Identity
+          git config --global user.email "reech@sovereign.core"
+          git config --global user.name "Reech"
+          git config --global --add safe.directory "*"
+          
           export JAVA_HOME=$JAVA_HOME_17_X64
-          # We run Buildozer with a flag to ignore git-based versioning if possible
+          # Force Buildozer to skip Git-based versioning
+          export APP_VERSION=1.0.88
+          
           buildozer android debug
         env:
           ACCEPT_SDK_LICENSE: "yes"
@@ -44,5 +43,5 @@ jobs:
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_SEED_V85
+          name: APEX_CORE_SEED_V88
           path: bin/*.apk
