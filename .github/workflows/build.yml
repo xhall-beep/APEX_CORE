@@ -27,6 +27,8 @@ jobs:
 
       - name: Sovereign Build Execution
         run: |
+          # 🔱 CRUSHING EXIT CODE 128: GRANTING GLOBAL TRUST
+          git config --global --add safe.directory '*'
           export JAVA_HOME=$JAVA_HOME_17_X64
           buildozer android debug
         env:
