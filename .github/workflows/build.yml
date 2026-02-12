@@ -9,14 +9,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Buildozer and Dependencies
+        run: |
+          pip install --upgrade git+https://github.com/kivy/buildozer.git@master
+          pip install --upgrade git+https://github.com/kivy/python-for-android.git@develop
+          pip install --upgrade cython==0.29.33 sh==1.14.3
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev libssl-dev
+
       - name: Build with Buildozer
         uses: ArtemSerebriakov/buildozer-action@v1
         with:
           buildozer_version: master
           command: buildozer android debug
           repository_root: .
-      - name: Upload Seed APK
+
+      - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_V85_SEED
+          name: APEX_CORE_SEED_V85
           path: bin/*.apk

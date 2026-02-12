@@ -17,6 +17,7 @@ android.allow_backup = False
 # Android 16 / API 35 alignment
 android.api = 35
 android.gradle_dependencies = "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
+android.gradle_dependencies = "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
 android.minapi = 31
 android.ndk = 28
 android.ndk_path = 
