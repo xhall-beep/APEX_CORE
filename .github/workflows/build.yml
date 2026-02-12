@@ -7,6 +7,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    # 🔱 Apply immunity to the entire JOB
+    env:
+      GIT_CONFIG_COUNT: 1
+      GIT_CONFIG_KEY_0: "safe.directory"
+      GIT_CONFIG_VALUE_0: "*"
     steps:
       - uses: actions/checkout@v4
 
@@ -17,8 +22,6 @@ jobs:
 
       - name: Install Hard-Asset Dependencies
         run: |
-          # 🔱 Force Global Trust immediately
-          git config --global --add safe.directory "*"
           sudo apt-get update
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext
           pip install --upgrade git+https://github.com/kivy/buildozer.git@master
@@ -27,28 +30,26 @@ jobs:
 
       - name: Sovereign Build Execution
         run: |
-          # 🔱 Step 1: Isolation
+          # 🔱 Physical Isolation
           mkdir -p /tmp/stateless_build
           cp -r . /tmp/stateless_build/
           cd /tmp/stateless_build
           rm -rf .git
           
-          # 🔱 Step 2: Ghost Repo & Universal Trust
+          # Initialize clean local repo
           git init
-          git config --global --add safe.directory "*"
           git config user.email "reech@sovereign.core"
           git config user.name "Reech"
           git add .
-          git commit -m "🔱 V94: Sovereign Source"
+          git commit -m "🔱 V95: Sovereign Source"
           
-          # 🔱 Step 3: Environment Alignment
           export JAVA_HOME=$JAVA_HOME_17_X64
-          export APP_VERSION=1.0.94
+          export APP_VERSION=1.0.95
           
-          # 🔱 Step 4: Ignition
+          # 🔱 The Ignition
           buildozer android debug
           
-          # 🔱 Step 5: Export
+          # Export
           mkdir -p $GITHUB_WORKSPACE/bin
           cp -r bin/*.apk $GITHUB_WORKSPACE/bin/ || echo "No APK found yet"
         env:
@@ -57,5 +58,5 @@ jobs:
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_SEED_V94
+          name: APEX_CORE_SEED_V95
           path: bin/*.apk
