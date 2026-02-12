@@ -1,13 +1,16 @@
 import os
-import requests
+import subprocess
 
 def ignite_cloud_forge():
     print("🔱 IGNITING REMOTE CLOUD FORGE...")
-    # This uses the GitHub CLI already integrated in your environment
     os.system("git add .")
-    os.system("git commit -m '🔱 AUTONOMOUS UPGRADE: Integrating new logic clusters'")
+    # Added a dummy change to ensure a commit is always created
+    os.system("date > .last_build")
+    os.system("git add .last_build")
+    os.system("git commit -m '🔱 TRIGGER: Forge Evolution Live'")
     os.system("git push origin main --force")
-    print("🚀 DISPATCHED TO GITHUB ACTIONS. EVOLUTION IN PROGRESS.")
+    print("🚀 DISPATCHED. SWITCHING TO LIVE TELEMETRY...")
+    os.system("python3 monitor_forge.py")
 
 if __name__ == "__main__":
     ignite_cloud_forge()

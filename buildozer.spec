@@ -16,6 +16,7 @@ android.allow_backup = False
 
 # Android 16 / API 35 alignment
 android.api = 35
+android.gradle_dependencies = "org.jetbrains.kotlin:kotlin-stdlib:1.9.22"
 android.minapi = 31
 android.ndk = 28
 android.ndk_path = 
@@ -26,4 +27,7 @@ android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, U
 
 [buildozer]
 log_level = 2
+# Optimal Forge Parameters
+android.skip_setup = False
+android.copy_libs = 1
 warn_on_root = 0
