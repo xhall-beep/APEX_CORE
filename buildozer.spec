@@ -1,34 +1,28 @@
 [app]
-android.gradle_dependencies = sqlite3
 title = APEX CORE
 package.name = apexcore
-package.domain = io.reech.sovereign
+package.domain = org.svontz
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,html,js,css,txt,sh,kts
-version = 85.4
+source.include_exts = py,png,jpg,kv,atlas
+version = 2.0.5
 
-# Requirements for our agentic stack
-requirements = python3,kivy==2.3.0,kivymd,flask,flask-socketio,eventlet,ptyprocess,requests,pandas,scikit-learn
+# 🔱 Optimized Requirements
+requirements = python3,kivy==2.3.0,six,pyjnius,sqlite3
 
 orientation = portrait
-fullscreen = 1
+osx.python_version = 3
+osx.kivy_version = 2.3.0
+fullscreen = 0
+
+# 🔱 Android Sovereign Forge Settings
+android.api = 34
+android.sdk = 34
+android.ndk = 25b
+android.ndk_api = 21
 android.archs = arm64-v8a
-android.allow_backup = False
-
-# Android 16 / API 35 alignment
-android.api = 35
-android.minapi = 31
-android.ndk = 28
-android.ndk_path = 
-android.sdk_path = 
-
-# Permissions for Actual Factual Interaction
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE, USB_PERMISSION, QUERY_ALL_PACKAGES
+android.allow_backup = True
+android.gradle_dependencies = sqlite-jdbc:3.34.0
 
 [buildozer]
 log_level = 2
-# Optimal Forge Parameters
-android.skip_setup = False
-android.copy_libs = 1
-android.enable_16k_alignment = True
 warn_on_root = 0
