@@ -15,30 +15,36 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Hard-Asset Dependencies
+      - name: Global Git Immunity & Dependency Injection
         run: |
+          # 🔱 Apply Immunity before any Git-based installs
+          git config --global --add safe.directory "*"
+          
           sudo apt-get update
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext
+          
+          # Install via Git-Immune pip
           pip install --upgrade git+https://github.com/kivy/buildozer.git@master
           pip install --upgrade git+https://github.com/kivy/python-for-android.git@develop
           pip install --upgrade cython==0.29.33 sh==1.14.3
 
       - name: Sovereign Build Execution
         run: |
-          # 🔱 Step 1: Migration to Stateless Space
+          # 🔱 Move to non-conflicting space
           mkdir -p /tmp/stateless_build
           cp -r . /tmp/stateless_build/
           cd /tmp/stateless_build
-          rm -rf .git  # Kill the source of Code 128
+          rm -rf .git
           
-          # 🔱 Step 2: Environment Alignment
           export JAVA_HOME=$JAVA_HOME_17_X64
-          export APP_VERSION=1.0.90
+          export APP_VERSION=1.0.92
           
-          # 🔱 Step 3: Ignition
+          # Force buildozer to use the immune config
+          git config --global --add safe.directory "*"
+          
           buildozer android debug
           
-          # 🔱 Step 4: Export Result
+          # Export results back to workspace
           mkdir -p $GITHUB_WORKSPACE/bin
           cp -r bin/*.apk $GITHUB_WORKSPACE/bin/ || echo "No APK found yet"
         env:
@@ -47,5 +53,5 @@ jobs:
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_SEED_V90
+          name: APEX_CORE_SEED_V92
           path: bin/*.apk
