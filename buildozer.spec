@@ -31,4 +31,5 @@ log_level = 2
 # Optimal Forge Parameters
 android.skip_setup = False
 android.copy_libs = 1
+android.enable_16k_alignment = True
 warn_on_root = 0
