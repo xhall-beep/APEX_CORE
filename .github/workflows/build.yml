@@ -7,42 +7,27 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    container:
+      image: kivy/buildozer:latest
     steps:
       - name: 🔱 Sovereign Source Extraction
         uses: actions/checkout@v4
 
-      - name: 🔱 Macro Reinforcement (Mirror-Shift)
+      - name: 🔱 Sovereign Build Ignition (Container Mode)
         run: |
-          # 🔱 FORCE MIRROR SHIFT: Pointing to the primary backbone
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
-          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
-          
-          sudo rm -rf /var/lib/apt/lists/*
-          sudo apt-get clean
-          
-          # 🔱 RESILIENT SEQUENCE
-          sudo apt-get update -y
-          sudo apt-get install -y --no-install-recommends \
-            autoconf automake libtool pkg-config libssl-dev libsqlite3-dev \
-            openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev libgstreamer1.0-dev
-          
-          python3 -m pip install --upgrade pip
-          python3 -m pip install "cython<3.0" "setuptools<69.0.0" "sh<2.0" buildozer
-
-      - name: 🔱 Sovereign Build Ignition
-        run: |
-          export APP_VERSION=2.2.2
-          export PATH=$PATH:$HOME/.local/bin
-          python3 -m pip install "cython==0.29.33"
-          # Direct ignition to see real-time progress
-          yes | buildozer -v android debug 2>&1 | tee build_diagnostic.log
+          # The container already has dependencies. We just ignite.
+          export APP_VERSION=2.2.3
+          # Fix for container permission quirks
+          git config --global --add safe.directory /__w/APEX_CORE/APEX_CORE
+          # Ignite build
+          buildozer -v android debug 2>&1 | tee build_diagnostic.log
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_2_2_LOGS
+          name: APEX_V2_2_3_CONTAINER_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
