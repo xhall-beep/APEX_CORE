@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1 # Shallow clone to minimize Git metadata interference
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,21 +25,27 @@ jobs:
 
       - name: Sovereign Build Execution
         run: |
-          # 🔱 Bypassing Git Code 128 via Static Identity
-          git config --global user.email "reech@sovereign.core"
-          git config --global user.name "Reech"
-          git config --global --add safe.directory "*"
+          # 🔱 Step 1: Migration to Stateless Space
+          mkdir -p /tmp/stateless_build
+          cp -r . /tmp/stateless_build/
+          cd /tmp/stateless_build
+          rm -rf .git  # Kill the source of Code 128
           
+          # 🔱 Step 2: Environment Alignment
           export JAVA_HOME=$JAVA_HOME_17_X64
-          # Force Buildozer to skip Git-based versioning
-          export APP_VERSION=1.0.88
+          export APP_VERSION=1.0.90
           
+          # 🔱 Step 3: Ignition
           buildozer android debug
+          
+          # 🔱 Step 4: Export Result
+          mkdir -p $GITHUB_WORKSPACE/bin
+          cp -r bin/*.apk $GITHUB_WORKSPACE/bin/ || echo "No APK found yet"
         env:
           ACCEPT_SDK_LICENSE: "yes"
 
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_SEED_V88
+          name: APEX_CORE_SEED_V90
           path: bin/*.apk
