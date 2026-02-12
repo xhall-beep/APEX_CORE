@@ -14,26 +14,29 @@ jobs:
 
       - name: 🔱 Install Dependencies (Macro Reinforcement)
         run: |
-          sudo apt-get update
-          # Broad-spectrum headers to prevent compilation "starvation"
-          sudo apt-get install -y autoconf automake libtool pkg-config libssl-dev libsqlite3-dev openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+          # Kill any background apt processes and clear locks
+          sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock
+          sudo apt-get update --fix-missing
+          sudo apt-get install -y autoconf automake libtool pkg-config libssl-dev libsqlite3-dev openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev libgstreamer1.0-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install "cython<3.0" "setuptools<69.0.0" "sh<2.0" buildozer
 
-      - name: 🔱 Sovereign Build Ignition (Deep-Sight Mode)
+      - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.1.8
+          export APP_VERSION=2.1.9
           export PATH=$PATH:$HOME/.local/bin
           python3 -m pip install "cython==0.29.33"
-          # 'script' command creates a full terminal log to catch the 'hidden' 10-minute error
-          script -e -c "yes | buildozer -v android debug" build_diagnostic.log
+          # Direct ignition with high verbosity
+          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (tail -n 200 build_diagnostic.log > crash_summary.txt && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_1_8_DEEP_LOGS
-          path: build_diagnostic.log
+          name: APEX_V2_1_9_LOGS
+          path: |
+            build_diagnostic.log
+            crash_summary.txt
 
       - name: 🔱 Release APEX GOLD MASTER
         if: success()
