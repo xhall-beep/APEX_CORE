@@ -21,18 +21,18 @@ jobs:
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.1.6
+          export APP_VERSION=2.1.7
           export PATH=$PATH:$HOME/.local/bin
-          # 🔱 SHIELD VERIFICATION
+          # 🔱 TOTAL RESET: Kill existing state to prevent metadata poisoning
+          rm -rf .buildozer
           python3 -m pip install "cython==0.29.33"
-          # Latching ignition with verbose output to the diagnostic vault
-          buildozer -v android debug > build_diagnostic.log 2>&1 || (tail -n 100 build_diagnostic.log > crash_summary.txt && exit 1)
+          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (tail -n 200 build_diagnostic.log > crash_summary.txt && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_1_6_LOGS
+          name: APEX_V2_1_7_LOGS
           path: |
             build_diagnostic.log
             crash_summary.txt
