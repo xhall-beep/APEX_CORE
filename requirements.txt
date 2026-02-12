@@ -1,0 +1,9 @@
+kivy==2.3.0
+kivymd
+flask
+flask-socketio
+eventlet
+ptyprocess
+requests
+pandas
+scikit-learn
