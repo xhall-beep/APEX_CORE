@@ -8,7 +8,7 @@ source.include_exts = py,png,jpg,kv,atlas
 version = 2.0.5
 
 # 🔱 Optimized Requirements
-requirements = python3,kivy==2.2.1,certifi,openssl
+requirements = python3,kivy==2.2.1,certifi,openssl,sqlite3,libffi
 
 orientation = portrait
 osx.python_version = 3
