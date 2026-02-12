@@ -19,6 +19,10 @@
         <button class="btn" onclick="fetch('/scout_supreme').then(r=>r.json()).then(d=>alert(JSON.stringify(d)))">🔭 SCOUT SUPREME REPOS</button>
     </div>
     <div id="terminal-container"></div>
+    <div id="screen-view" style="margin-top:20px; border:2px solid #00ff41; background:#000; text-align:center;">
+        <h3 style="padding:10px;">📱 PIXEL LIVE SIGHT</h3>
+        <img id="pixel-screen" src="/screen.png" style="max-width:300px; border:1px solid #333; margin-bottom:10px;" onerror="this.style.display="none"">
+    </div>
     <div class="status-bar">
         <span>DEVICE: PIXEL 8 PRO / ANDROID 16</span>
         <span>OS: DEBIAN-SOVEREIGN-ROOT</span>

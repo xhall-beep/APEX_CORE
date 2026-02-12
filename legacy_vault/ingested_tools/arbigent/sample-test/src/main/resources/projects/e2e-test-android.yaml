@@ -1,0 +1,108 @@
+scenarios:
+- id: "f9c17741-093e-49f0-ad45-8311ba68c1a6"
+  goal: "Search for the \"About emulated device\" item in the OS Settings. Please\
+    \ do not click \"Device name\". Your goal is to reach the \"About emulated device\"\
+    \ page."
+  initializationMethods:
+  - type: "Back"
+    times: 5
+  - type: "MaestroYaml"
+    scenarioId: "3c441e6f-6178-4b4f-b2a2-fbdbf8fa4266"
+  tags:
+  - name: "Settings"
+  - name: "Search"
+  imageAssertions:
+  - assertionPrompt: "The screen should display the \"About emulated device\" page."
+- id: "open-model-page"
+  goal: "First click on 'About emulated device' to enter the page, then scroll down and open \"Model\" page in \"About emulated device\" page. Be careful not to open other pages"
+  dependency: "f9c17741-093e-49f0-ad45-8311ba68c1a6"
+  tags:
+  - name: "Settings"
+  aiOptions:
+    temperature: 0.7
+    imageFormat: "png"
+- id: "5f221744-6a45-4ff2-a980-eaba77049dc6"
+  goal: "Just open Legal information"
+  dependency: "f9c17741-093e-49f0-ad45-8311ba68c1a6"
+  tags:
+  - name: "Settings"
+- id: "16c24dfc-cbc7-4e17-af68-c97ad0a2aa3f"
+  goal: "Just open camera app"
+  initializationMethods:
+  - type: "CleanupData"
+    packageName: "com.android.camera2"
+  - type: "LaunchApp"
+    packageName: "com.android.camera2"
+  tags:
+  - name: "Camera"
+- id: "96eea9f9-b099-4b4e-b98b-ee3caf84bc49"
+  goal: "Just check the weather in Japan using the tool. Include the result in the\
+    \ memo. If you can see the execution result, must archive the goal"
+  initializationMethods:
+  - type: "Back"
+- id: "6998f5c6-b84e-474e-90e2-fb488d4d70fc"
+  goal: "All you have to do is launch com.android.settings using mcp launch_app"
+  initializationMethods:
+  - type: "Back"
+- id: "variable-substitution-test"
+  goal: "Search for {{search_term}} in the Settings app and verify it appears in search results"
+  initializationMethods:
+  - type: "Back"
+    times: 5
+  - type: "LaunchApp"
+    packageName: "com.android.settings"
+  tags:
+  - name: "VariableSubstitution"
+  - name: "Settings"
+  - name: "Search"
+- id: "variable-app-launch-test"
+  goal: "Launch the {{app_package}} app using the launch_app tool"
+  initializationMethods:
+  - type: "Back"
+    times: 3
+  tags:
+  - name: "VariableSubstitution"
+  - name: "AppLaunch"
+- id: "escaped-variable-test"
+  goal: "Open Settings and search for the literal text '\\{{search_term}}' (including the curly braces). This tests that escaped variables are preserved as-is. The search should find no results since '\\{{search_term}}' is not a real setting."
+  initializationMethods:
+  - type: "LaunchApp"
+    packageName: "com.android.settings"
+  tags:
+  - name: "EscapedVariable"
+  - name: "Settings"
+fixedScenarios:
+- id: "3c441e6f-6178-4b4f-b2a2-fbdbf8fa4266"
+  title: "launch setting by maestro"
+  description: "launch setting by maestro"
+  yamlText: |-
+    appId: "com.android.settings"
+    ---
+    - launchApp
+    - waitForAnimationToEnd:
+          timeout: 500
+settings:
+  prompt:
+    additionalSystemPrompts:
+    - "Please wait some seconds to "
+  cacheStrategy:
+    aiDecisionCacheStrategy:
+      type: "Disk"
+  aiOptions:
+    temperature: 0.0
+    imageFormat: "lossy_webp"
+  mcpJson: |-
+    {
+      "mcpServers": {
+        "weather": {
+          "command": "./mcpserversample.main.kts"
+        },
+        "android-adb": {
+          "command": "npx",
+          "args": ["-y", "@landicefu/android-adb-mcp-server"],
+          "env": {},
+          "disabled": false,
+          "alwaysAllow": []
+        }
+      }
+    }
