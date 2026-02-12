@@ -16,7 +16,7 @@ jobs:
           cp -rn APEX_CORE-main/* . || cp -rn APEX_CORE-master/* . || true
           rm -rf APEX_CORE-main APEX_CORE-master repo.zip .git
 
-      - name: 🔱 Set up Java 17 (Hard-Asset Standard)
+      - name: 🔱 Set up Java 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -27,31 +27,19 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 🔱 Dynamic Spec Repair & Optimization
-        run: |
-          # 🔱 Automatically ensure the spec is optimized for 2026 Android standards
-          sed -i 's/android.sdk = .*/android.sdk = 34/' buildozer.spec
-          sed -i 's/android.api = .*/android.api = 34/' buildozer.spec
-          sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
-          # Force 16KB Page Alignment support for modern Android
-          if ! grep -q "android.ndk_path" buildozer.spec; then
-            echo "android.ndk_api = 21" >> buildozer.spec
-          fi
-          echo "🔱 Spec optimized autonomously."
-
-      - name: 🔱 Install Dependencies (Immune Protocol)
+      - name: 🔱 Install Dependencies (The 3:1 ROI Protocol)
         run: |
           sudo apt-get update
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext zip unzip
-          # Bypass 'Externally Managed' via direct flag + isolation
+          # 🔱 Pinning critical versions to stop Exit Code 1
           pip install --upgrade pip --break-system-packages
-          pip install --upgrade cython==0.29.33 sh==1.14.3 buildozer --break-system-packages
-          pip install --upgrade git+https://github.com/kivy/python-for-android.git@develop --break-system-packages
+          pip install --upgrade "sh<2.0" "six>=1.15.0" cython==0.29.33 --break-system-packages
+          pip install --upgrade buildozer git+https://github.com/kivy/python-for-android.git@develop --break-system-packages
 
       - name: 🔱 Sovereign Build Execution
         run: |
-          export APP_VERSION=1.1.0
-          # 🔱 Auto-Accepting all Android SDK Licenses autonomously
+          export APP_VERSION=1.1.1
+          # 🔱 Physical bypass of buildozer's internal git check
           mkdir -p ~/.android && touch ~/.android/repositories.cfg
           yes | buildozer -v android debug
         env:
@@ -60,5 +48,5 @@ jobs:
       - name: 🔱 Upload APEX GOLD MASTER
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V110
+          name: APEX_GOLD_MASTER_V111
           path: bin/*.apk
