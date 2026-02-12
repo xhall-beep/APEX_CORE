@@ -15,15 +15,17 @@ jobs:
       - name: 🔱 Install Dependencies (Macro Reinforcement)
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf automake libtool pkg-config libffi-dev libssl-dev libsqlite3-dev openjdk-17-jdk zip unzip cmake
+          # Swapping to universal libffi and adding the Linker Bridge (libltdl)
+          sudo apt-get install -y autoconf automake libtool pkg-config libssl-dev libsqlite3-dev openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install "cython<3.0" "setuptools<69.0.0" "sh<2.0" buildozer
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.1.4
+          export APP_VERSION=2.1.5
           export PATH=$PATH:$HOME/.local/bin
-          # 🔱 FINAL SHIELD: Kill any toxic Cython 3 leak
+          # 🔱 SHIELD REINFORCEMENT: Force clean ignition
+          buildozer android clean
           python3 -m pip uninstall -y cython
           python3 -m pip install "cython==0.29.33"
           yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD_CRASH_DETECTION" >> build_diagnostic.log && exit 1)
@@ -32,7 +34,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_1_4_LOGS
+          name: APEX_V2_1_5_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
