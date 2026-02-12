@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/home/runner/.local/bin/buildozer", line 6, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/runner/.local/lib/python3.12/site-packages/buildozer/scripts/client.py", line 13, in main
+    Buildozer().run_command(sys.argv[1:])
+    ^^^^^^^^^^^
+  File "/home/runner/.local/lib/python3.12/site-packages/buildozer/__init__.py", line 127, in __init__
+    self.config.read(filename, "utf-8")
+  File "/usr/lib/python3.12/configparser.py", line 684, in read
+    self._read(fp, filename)
+  File "/usr/lib/python3.12/configparser.py", line 1075, in _read
+    raise DuplicateOptionError(sectname, optname,
+configparser.DuplicateOptionError: While reading from 'buildozer.spec' [line 20]: option 'android.gradle_dependencies' in section 'app' already exists

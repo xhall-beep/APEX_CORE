@@ -8,47 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    permissions: write-all
     steps:
-      - name: 🔱 Manual Source Extraction
+      - name: 🔱 Sovereign Source Extraction
         uses: actions/checkout@v4
-        with:
-          path: 'temp_source'
 
-      - name: 🔱 Flattening & Spec Optimization
+      - name: 🔱 Install Dependencies (Immune Protocol)
         run: |
-          mkdir -p workspace
-          cp -r temp_source/* workspace/
-          cd workspace
-          rm -rf .git .github .gitmodules
-          sed -i 's/android.sdk = .*/android.sdk = 34/' buildozer.spec
-          sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
-          sed -i 's/^#android.ndk_api = .*/android.ndk_api = 21/' buildozer.spec
-          sed -i 's/requirements = .*/requirements = python3,kivy==2.3.0,six,pyjnius/' buildozer.spec
-
-      - name: 🔱 Global Tooling Injection
-        run: |
-          sudo apt-get update -y
+          sudo apt-get update
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext zip unzip cmake
           python3 -m pip install --upgrade pip --break-system-packages
-          python3 -m pip install --upgrade "cython<3.0" "setuptools<69.0.0" "sh<2.0" "six>=1.15.0" buildozer --break-system-packages
+          python3 -m pip install --upgrade "cython<3.0" "setuptools<69.0.0" "sh<2.0" buildozer --break-system-packages
 
-      - name: 🔱 Sovereign Build Ignition (With Black-Box Logging)
-        working-directory: ./workspace
+      - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.0.2
-          export BUILDOZER_ALLOW_ORG_NAME_START=1
-          # 🔱 Redirecting ALL output to a diagnostic file
-          buildozer -v android clean > ../build_diagnostic.log 2>&1
-          yes | buildozer -v android debug >> ../build_diagnostic.log 2>&1 || (echo "BUILD FAILED: CHECKING LOGS" && exit 1)
-        env:
-          ACCEPT_SDK_LICENSE: "yes"
+          export APP_VERSION=2.0.4
+          # 🔱 Running a targeted clean to wipe the broken spec cache
+          buildozer -v android clean
+          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD FAILED" && exit 1)
 
-      - name: 🔱 Upload Diagnostic Vault (Always Run)
-        if: always() # 🔱 This ensures logs upload even if build fails
+      - name: 🔱 Upload Diagnostic Vault (Always)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_DIAGNOSTIC_LOGS
+          name: APEX_V2_0_4_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
@@ -56,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: APEX_V2_GOLD_MASTER
-          path: workspace/bin/*.apk
+          path: bin/*.apk
