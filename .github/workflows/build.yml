@@ -12,19 +12,17 @@ jobs:
       - name: 🔱 Sovereign Source Extraction
         uses: actions/checkout@v4
 
-      - name: 🔱 Macro Reinforcement (Resilient Mode)
+      - name: 🔱 Macro Reinforcement (Mirror-Shift)
         run: |
-          # 🔱 CLEARING ALL POTENTIAL INTERRUPTS
-          sudo killall -9 apt-get apt 2>/dev/null || true
-          sudo rm -rf /var/lib/apt/lists/*
+          # 🔱 FORCE MIRROR SHIFT: Pointing to the primary backbone
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
+          sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu/|http://archive.ubuntu.com/ubuntu/|g' /etc/apt/sources.list
           
-          # 🔱 RESILIENT UPDATE SEQUENCE
-          # Retrying up to 3 times if the mirror is unresponsive
-          for i in {1..3}; do
-            sudo apt-get update -y && break || sleep 10
-          done
-
-          # 🔱 TARGETED INSTALLATION
+          sudo rm -rf /var/lib/apt/lists/*
+          sudo apt-get clean
+          
+          # 🔱 RESILIENT SEQUENCE
+          sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends \
             autoconf automake libtool pkg-config libssl-dev libsqlite3-dev \
             openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev libgstreamer1.0-dev
@@ -34,21 +32,18 @@ jobs:
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.2.1
+          export APP_VERSION=2.2.2
           export PATH=$PATH:$HOME/.local/bin
           python3 -m pip install "cython==0.29.33"
-          # 🔱 SHIELDED LOGGING
-          # Using a direct file write to ensure we don't lose the diagnostic data
-          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (tail -n 300 build_diagnostic.log > crash_summary.txt && exit 1)
+          # Direct ignition to see real-time progress
+          yes | buildozer -v android debug 2>&1 | tee build_diagnostic.log
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_2_1_LOGS
-          path: |
-            build_diagnostic.log
-            crash_summary.txt
+          name: APEX_V2_2_2_LOGS
+          path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
         if: success()
