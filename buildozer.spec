@@ -1,4 +1,5 @@
 [app]
+android.gradle_dependencies = sqlite3, libffi
 title = APEX CORE
 package.name = apexcore
 package.domain = org.svontz
@@ -15,7 +16,7 @@ osx.kivy_version = 2.3.0
 fullscreen = 0
 
 # 🔱 Android Sovereign Forge Settings
-android.api = 34
+android.api = 33
 android.sdk = 34
 android.ndk = 25b
 android.ndk_api = 21
@@ -25,4 +26,3 @@ android.allow_backup = True
 [buildozer]
 log_level = 2
 warn_on_root = 0
-android.gradle_dependencies = sqlite3, libffi
