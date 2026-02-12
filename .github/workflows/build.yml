@@ -21,21 +21,15 @@ jobs:
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.0.4
-          # 🔱 Running a targeted clean to wipe the broken spec cache
-          buildozer -v android clean
-          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD FAILED" && exit 1)
+          # 🔱 Force Path Injection to bypass internal lookups
+          export APP_VERSION=2.0.6
+          export GRADLE_OPTS="-Dorg.gradle.daemon=false"
+          # Skip clean, go straight to debug with auto-accept
+          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD_CRASH_DETECTION" >> build_diagnostic.log && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_0_4_LOGS
+          name: APEX_V2_0_6_LOGS
           path: build_diagnostic.log
-
-      - name: 🔱 Release APEX GOLD MASTER
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: APEX_V2_GOLD_MASTER
-          path: bin/*.apk
