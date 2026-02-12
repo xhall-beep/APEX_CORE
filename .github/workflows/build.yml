@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,18 +19,18 @@ jobs:
 
       - name: Install Hard-Asset Dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext
           pip install --upgrade git+https://github.com/kivy/buildozer.git@master
           pip install --upgrade git+https://github.com/kivy/python-for-android.git@develop
           pip install --upgrade cython==0.29.33 sh==1.14.3
-          sudo apt-get update
-          sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk
 
-      - name: Build with Buildozer
-        uses: ArtemSerebriakov/buildozer-action@v1
-        with:
-          buildozer_version: master
-          command: buildozer android debug
-          repository_root: .
+      - name: Sovereign Build Execution
+        run: |
+          export JAVA_HOME=$JAVA_HOME_17_X64
+          buildozer android debug
+        env:
+          ACCEPT_SDK_LICENSE: "yes"
 
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
