@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: 🔱 Sovereign Source Extraction
         uses: actions/checkout@v4
@@ -15,7 +15,6 @@ jobs:
       - name: 🔱 Install Dependencies (Macro Reinforcement)
         run: |
           sudo apt-get update
-          # 🔱 Adding libtool, m4, and automake to fix the libffi crash
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip \
           autoconf automake libtool m4 pkg-config zlib1g-dev libncurses5-dev \
           libncursesw5-dev libffi-dev gettext zip unzip cmake
@@ -24,16 +23,15 @@ jobs:
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.0.7
-          export GRADLE_OPTS="-Dorg.gradle.daemon=false"
-          # 🔱 Explicitly accepting SDK licenses to prevent hangs
+          export APP_VERSION=2.1.0
+          export PATH=$PATH:$HOME/.local/bin
           yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD_CRASH_DETECTION" >> build_diagnostic.log && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_0_7_LOGS
+          name: APEX_V2_1_0_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER

@@ -16,7 +16,7 @@ osx.kivy_version = 2.3.0
 fullscreen = 0
 
 # 🔱 Android Sovereign Forge Settings
-android.api = 33
+android.api = 31
 android.sdk = 34
 android.ndk = 25b
 android.ndk_api = 21
