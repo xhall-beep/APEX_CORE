@@ -10,29 +10,39 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: kivy/buildozer:latest
+      options: --user root
     steps:
       - name: 🔱 Sovereign Source Extraction
         uses: actions/checkout@v4
 
-      - name: 🔱 Sovereign Build Ignition (Container Mode)
+      - name: 🔱 Sovereign Build Ignition (License Bypass)
         run: |
-          # The container already has dependencies. We just ignite.
-          export APP_VERSION=2.2.3
-          # Fix for container permission quirks
+          export APP_VERSION=2.2.4
           git config --global --add safe.directory /__w/APEX_CORE/APEX_CORE
-          # Ignite build
+          
+          # 🔱 AUTO-ACCEPT LICENSES: The missing handshake
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | sdkmanager --licenses || true
+          
+          # 🔱 REFRESH & IGNITE
+          buildozer android clean
           buildozer -v android debug 2>&1 | tee build_diagnostic.log
+          
+          # 🔱 EXTRACTION
+          mkdir -p export_bin
+          find . -name "*.apk" -exec cp {} export_bin/ \;
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_2_3_CONTAINER_LOGS
+          name: APEX_V2_2_4_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_GOLD_MASTER
-          path: bin/*.apk
+          name: APEX_GOLD_MASTER_V2_2_4
+          path: export_bin/*.apk
