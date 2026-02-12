@@ -1,58 +1,54 @@
-name: 🔱 APEX CORE SOVEREIGN FORGE
+name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions: write-all
     steps:
-      - name: 🔱 Checkout Sovereign Source
+      - name: 🔱 Manual Source Extraction
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
+          path: 'temp_source' # 🔱 Isolating the source to prevent sandbox interference
 
-      - name: 🔱 Global Permission Strike
+      - name: 🔱 Flattening & Locating Spec
         run: |
-          # Force the runner to treat the entire directory as safe and writable
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-          chmod -R 777 $GITHUB_WORKSPACE
+          # 🔱 Moving source to a clean root, stripping all .git metadata
+          mkdir -p workspace
+          cp -r temp_source/* workspace/
+          cd workspace
+          rm -rf .git .github .gitmodules
+          # 🔱 Auto-Repairing buildozer.spec for API 34/NDK 25b
+          sed -i 's/android.sdk = .*/android.sdk = 34/' buildozer.spec
+          sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
+          sed -i 's/^#android.ndk_api = .*/android.ndk_api = 21/' buildozer.spec
 
-      - name: 🔱 Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: 🔱 Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: 🔱 Install Dependencies (Immune Protocol)
+      - name: 🔱 Global Tooling Injection
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext zip unzip
-          pip install --upgrade pip --break-system-packages
-          pip install --upgrade "sh<2.0" "six>=1.15.0" cython==0.29.33 buildozer --break-system-packages
-          pip install --upgrade git+https://github.com/kivy/python-for-android.git@develop --break-system-packages
+          sudo apt-get update -y
+          sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext zip unzip cmake
+          python3 -m pip install --upgrade pip --break-system-packages
+          python3 -m pip install --upgrade "sh<2.0" "six>=1.15.0" "cython<3.0" buildozer --break-system-packages
 
-      - name: 🔱 Sovereign Build Execution
+      - name: 🔱 Sovereign Build Ignition
+        working-directory: ./workspace
         run: |
-          export APP_VERSION=1.1.2
-          # 🔱 Physical bypass of the Buildozer/Git interaction
+          export APP_VERSION=2.0.0
           export BUILDOZER_ALLOW_ORG_NAME_START=1
           export BUILDOZER_WARN_ON_ROOT=0
-          
-          # Initialize and force the build
-          buildozer -v android debug
+          # 🔱 The "No-Fail" Protocol: Force-clean before debug
+          buildozer -v android clean
+          yes | buildozer -v android debug
         env:
           ACCEPT_SDK_LICENSE: "yes"
 
-      - name: 🔱 Upload APEX GOLD MASTER
+      - name: 🔱 Release APEX GOLD MASTER
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V112
-          path: bin/*.apk
+          name: APEX_V2_GOLD_MASTER
+          path: workspace/bin/*.apk
+          retention-days: 7

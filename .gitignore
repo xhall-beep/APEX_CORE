@@ -1,8 +1,6 @@
 .buildozer/
 bin/
-__pycache__/
 *.pyc
-.env
-secrets.json
-*.log
-tools/**/.git
+__pycache__/
+.git/modules
+*.apk
