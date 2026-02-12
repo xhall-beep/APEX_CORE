@@ -1,18 +1,22 @@
-name: 🔱 APEX CORE FORGE
-on: [push]
+name: 🔱 APEX CORE SEED FORGE
+
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build with Buildozer
-        uses: ArtemSerebrennkov/buildozer-action@v1
+        uses: ArtemSerebriakov/buildozer-action@v1
         with:
           buildozer_version: master
           command: buildozer android debug
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+          repository_root: .
+      - name: Upload Seed APK
+        uses: actions/upload-artifact@v4
         with:
-          name: APEX_V84_POWER
+          name: APEX_CORE_V85_SEED
           path: bin/*.apk
