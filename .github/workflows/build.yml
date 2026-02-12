@@ -17,6 +17,8 @@ jobs:
 
       - name: Install Hard-Asset Dependencies
         run: |
+          # 🔱 Force Global Trust immediately
+          git config --global --add safe.directory "*"
           sudo apt-get update
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext
           pip install --upgrade git+https://github.com/kivy/buildozer.git@master
@@ -31,18 +33,17 @@ jobs:
           cd /tmp/stateless_build
           rm -rf .git
           
-          # 🔱 Step 2: Ghost Repo Injection
-          # This creates a "Fake" history so Buildozer is satisfied
+          # 🔱 Step 2: Ghost Repo & Universal Trust
           git init
+          git config --global --add safe.directory "*"
           git config user.email "reech@sovereign.core"
           git config user.name "Reech"
           git add .
-          git commit -m "🔱 V93: Initializing Sovereign Ghost Repo"
-          git config --global --add safe.directory "*"
+          git commit -m "🔱 V94: Sovereign Source"
           
           # 🔱 Step 3: Environment Alignment
           export JAVA_HOME=$JAVA_HOME_17_X64
-          export APP_VERSION=1.0.93
+          export APP_VERSION=1.0.94
           
           # 🔱 Step 4: Ignition
           buildozer android debug
@@ -56,5 +57,5 @@ jobs:
       - name: Upload Seed APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_CORE_SEED_V93
+          name: APEX_CORE_SEED_V94
           path: bin/*.apk
