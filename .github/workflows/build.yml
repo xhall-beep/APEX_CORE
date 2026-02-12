@@ -13,35 +13,36 @@ jobs:
       - name: 🔱 Manual Source Extraction
         uses: actions/checkout@v4
         with:
-          path: 'temp_source' # 🔱 Isolating the source to prevent sandbox interference
+          path: 'temp_source'
 
-      - name: 🔱 Flattening & Locating Spec
+      - name: 🔱 Flattening & Spec Optimization
         run: |
-          # 🔱 Moving source to a clean root, stripping all .git metadata
           mkdir -p workspace
           cp -r temp_source/* workspace/
           cd workspace
           rm -rf .git .github .gitmodules
-          # 🔱 Auto-Repairing buildozer.spec for API 34/NDK 25b
+          # 🔱 Force-Aligning Spec for the Stability Triad
           sed -i 's/android.sdk = .*/android.sdk = 34/' buildozer.spec
+          sed -i 's/android.api = .*/android.api = 34/' buildozer.spec
           sed -i 's/android.ndk = .*/android.ndk = 25b/' buildozer.spec
-          sed -i 's/^#android.ndk_api = .*/android.ndk_api = 21/' buildozer.spec
+          # Remove specific version pins from the spec to let P4A handle recipes
+          sed -i 's/requirements = .*/requirements = python3,kivy==2.3.0,six,pyjnius/' buildozer.spec
 
-      - name: 🔱 Global Tooling Injection
+      - name: 🔱 Global Tooling Injection (Stability Triad)
         run: |
           sudo apt-get update -y
           sudo apt-get install -y libsqlite3-dev libssl-dev openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libffi-dev gettext zip unzip cmake
+          # 🔱 LOCKING THE TRIAD: cython, setuptools, and sh
           python3 -m pip install --upgrade pip --break-system-packages
-          python3 -m pip install --upgrade "sh<2.0" "six>=1.15.0" "cython<3.0" buildozer --break-system-packages
+          python3 -m pip install --upgrade "cython<3.0" "setuptools<69.0.0" "sh<2.0" "six>=1.15.0" buildozer --break-system-packages
 
       - name: 🔱 Sovereign Build Ignition
         working-directory: ./workspace
         run: |
-          export APP_VERSION=2.0.0
-          export BUILDOZER_ALLOW_ORG_NAME_START=1
-          export BUILDOZER_WARN_ON_ROOT=0
-          # 🔱 The "No-Fail" Protocol: Force-clean before debug
-          buildozer -v android clean
+          export APP_VERSION=2.0.1
+          # 🔱 The "Unrestricted" Execution
+          # We run 'clean' first to ensure a pure 2.0.1 compile
+          buildozer android clean
           yes | buildozer -v android debug
         env:
           ACCEPT_SDK_LICENSE: "yes"
@@ -51,4 +52,3 @@ jobs:
         with:
           name: APEX_V2_GOLD_MASTER
           path: workspace/bin/*.apk
-          retention-days: 7
