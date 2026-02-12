@@ -21,17 +21,18 @@ jobs:
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.1.3
+          export APP_VERSION=2.1.4
           export PATH=$PATH:$HOME/.local/bin
-          # Verify the shield is active
-          python3 -c "import cython; print(f'🔱 Shield Active: {cython.__version__}')"
+          # 🔱 FINAL SHIELD: Kill any toxic Cython 3 leak
+          python3 -m pip uninstall -y cython
+          python3 -m pip install "cython==0.29.33"
           yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD_CRASH_DETECTION" >> build_diagnostic.log && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_1_3_LOGS
+          name: APEX_V2_1_4_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
