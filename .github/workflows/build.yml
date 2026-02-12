@@ -15,27 +15,27 @@ jobs:
       - name: 🔱 Install Dependencies (Macro Reinforcement)
         run: |
           sudo apt-get update
-          # Swapping to universal libffi and adding the Linker Bridge (libltdl)
           sudo apt-get install -y autoconf automake libtool pkg-config libssl-dev libsqlite3-dev openjdk-17-jdk zip unzip cmake libffi-dev libltdl-dev
           python3 -m pip install --upgrade pip
           python3 -m pip install "cython<3.0" "setuptools<69.0.0" "sh<2.0" buildozer
 
       - name: 🔱 Sovereign Build Ignition
         run: |
-          export APP_VERSION=2.1.5
+          export APP_VERSION=2.1.6
           export PATH=$PATH:$HOME/.local/bin
-          # 🔱 SHIELD REINFORCEMENT: Force clean ignition
-          buildozer android clean
-          python3 -m pip uninstall -y cython
+          # 🔱 SHIELD VERIFICATION
           python3 -m pip install "cython==0.29.33"
-          yes | buildozer -v android debug > build_diagnostic.log 2>&1 || (echo "BUILD_CRASH_DETECTION" >> build_diagnostic.log && exit 1)
+          # Latching ignition with verbose output to the diagnostic vault
+          buildozer -v android debug > build_diagnostic.log 2>&1 || (tail -n 100 build_diagnostic.log > crash_summary.txt && exit 1)
 
       - name: 🔱 Upload Diagnostic Vault (Always)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_1_5_LOGS
-          path: build_diagnostic.log
+          name: APEX_V2_1_6_LOGS
+          path: |
+            build_diagnostic.log
+            crash_summary.txt
 
       - name: 🔱 Release APEX GOLD MASTER
         if: success()
