@@ -1,4 +1,4 @@
-name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE (BYPASS MODE)
+name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE (DEBUG MODE)
 
 on:
   push:
@@ -15,52 +15,64 @@ jobs:
       - name: 🔱 SOURCE ACQUISITION
         uses: actions/checkout@v4
 
-      - name: 🔱 SDK FORCING PROTOCOL (ABSOLUTE PATHS)
+      - name: 🔱 SDK FORCING PROTOCOL (DEBUG MODE)
         run: |
-          # FORCE ABSOLUTE PATHS (NO USER-SPECIFIC PATHS)
+          # Force absolute paths with full visibility
           export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
           export SDK_TOOLS_PATH="$ANDROID_HOME/cmdline-tools/latest/bin"
           
-          # CREATE EXACT PATHS BUILDING EXPECTS
+          # Create required directory structure
           mkdir -p $ANDROID_HOME/build-tools/36.1.0
           
-          # CREATE REAL AIDL BINARY (WITH FULL SHEBANG)
-          echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
+          # Create REAL AIDL binary with debugging
+          echo -e '#!/bin/bash\n# Debugging Aidl\nset -x\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
           chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
           
-          # CREATE VERSION FILE (FORCE VERSION CHECKS)
+          # Create version file
           echo "36.1.0" > $ANDROID_HOME/build-tools/version
           
-          # FORCE LICENSE ACCEPTANCE (BYPASS ALL CHECKS)
+          # Force license acceptance (debug mode)
           yes | sdkmanager --licenses 2>/dev/null || true
           yes | $SDK_TOOLS_PATH/sdkmanager --licenses 2>/dev/null || true
 
-      - name: 🔱 BUILD IGNITION (Nuclear Mode)
+      - name: 🔱 BUILD IGNITION (DEBUG MODE)
         run: |
-          # FORCE CLEAN WITH ABSOLUTE PATHS
-          buildozer android clean
-          
-          # RUN BUILD WITH ABSOLUTE PATHS (NO FAILURE CHECK)
+          # RUN BUILD WITH MAXIMUM DEBUGGING
           buildozer -v android debug 2>&1 | tee /root/build.log
           
-          # FORCE APK EXTRACTION (BYPASS ALL CHECKS)
+          # VERIFY APK LOCATION (CRITICAL DEBUG)
+          echo "Checking for APK in all possible locations..."
+          find / -name "*.apk" -exec ls -la {} \; 2>/dev/null
+          echo "Current directory contents:"
+          ls -la
+          
+          # Check buildozer's build directory
+          echo "Checking buildozer's build directory:"
+          ls -la /root/.buildozer/
+          ls -la /root/.buildozer/android/platform/build-arm64-v8a/
+          
+          # Force APK extraction from all locations
           mkdir -p /root/export_bin
-          find /root -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
+          find / -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
           ls -la /root/export_bin
 
-      - name: 🔱 DIAGNOSTIC ARCHIVE (Nuclear Mode)
+      - name: 🔱 DIAGNOSTIC ARCHIVE (FULL DEBUG)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_BYPASS_DIAGNOSTICS
+          name: APEX_DEBUG_ARTIFACTS
           path: |
             /root/build.log
             /root/export_bin
             /root/.buildozer/
+            /root/.buildozer/android/platform/build-arm64-v8a/
 
-      - name: 🔱 APEX GOLD MASTER RELEASE (Nuclear Mode)
-        if: success()
+      - name: 🔱 APEX GOLD MASTER RELEASE (ONLY IF APK FOUND)
+        if: |
+          steps.build.outputs.apk_found == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V2_2_5
+          name: APEX_GOLD_MASTER_V2_2_9
           path: /root/export_bin/*.apk
+        outputs:
+          apk_found: ${{ steps.build.outputs.apk_found }}
