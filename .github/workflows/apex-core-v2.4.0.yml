@@ -17,21 +17,33 @@ jobs:
         run: |
           export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
           export SDK_TOOLS_PATH="$ANDROID_HOME/cmdline-tools/latest/bin"
+          
+          # ONLY clear logs and export bins, do NOT rm -rf .buildozer
           rm -rf /root/export_bin /root/build.log
+          mkdir -p /root/export_bin
+          
+          # Force Path Creation for AIDL
           mkdir -p $ANDROID_HOME/build-tools/36.1.0
           echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
           chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
+          
+          # Force SDK 33 Alignment
           yes | $SDK_TOOLS_PATH/sdkmanager "build-tools;33.0.0" "platforms;android-33" 2>/dev/null || true
 
-      - name: BUILD IGNITION (Nuclear Mode)
+      - name: BUILD IGNITION
         run: |
-          buildozer android clean
+          # Use -v to see the real-time forge and tee to the root log
           buildozer -v android debug 2>&1 | tee /root/build.log
-          mkdir -p /root/export_bin
-          # FORCED EXTRACTION: Target bin/ directory first for speed
-          find bin/ -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null || find / -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
-          # RENAME WITH UNIQUE TIMESTAMP TO BYPASS EXTRACTION BLOCKS
-          for f in /root/export_bin/*.apk; do mv "$f" "/root/export_bin/apex_v2_4_0_$(date +%s)_$(basename "$f")"; done
+          
+          # Optimized Extraction Logic
+          find bin/ -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
+          
+          # Corrected Renaming Loop
+          for f in /root/export_bin/*.apk; do 
+            if [ -f "$f" ]; then
+              mv "$f" "/root/export_bin/apex_v2_4_0_$(date +%s)_$(basename "$f")"
+            fi
+          done
 
       - name: ARCHIVE ASSETS
         if: always()
