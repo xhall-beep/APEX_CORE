@@ -1,4 +1,4 @@
-name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE
+name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE (OVERDRIVE)
 
 on:
   push:
@@ -12,37 +12,45 @@ jobs:
       image: kivy/buildozer:latest
       options: --user root
     steps:
-      - name: 🔱 Sovereign Source Extraction
+      - name: 🔱 Sovereign Source Acquisition
         uses: actions/checkout@v4
 
-      - name: 🔱 Sovereign Build Ignition (License Bypass)
+      - name: 🔱 Protocol-Zero: SDK/License Anchor
         run: |
-          export APP_VERSION=2.2.4
-          git config --global --add safe.directory /__w/APEX_CORE/APEX_CORE
+          # 🔱 Define absolute sovereign paths
+          export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
+          export PLATFORM_TOOLS="$ANDROID_HOME/platform-tools"
+          export BUILD_TOOLS_DIR="$ANDROID_HOME/build-tools/36.1.0"
           
-          # 🔱 AUTO-ACCEPT LICENSES: The missing handshake
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
+          # 🔱 Force License Injection (Bypasses all legal hangs)
+          mkdir -p "$ANDROID_HOME/licenses"
+          echo -e "24333f0175b631d8764020a3205dfda0-placeholder" > "$ANDROID_HOME/licenses/android-sdk-license"
+          echo -e "8933bad161af91781537-placeholder" > "$ANDROID_HOME/licenses/android-googletv-license"
+          
+          # 🔱 Fix the 'Aidl Not Found' Ghost
+          # This creates a symbiotic link so Buildozer finds what it needs
+          mkdir -p "$BUILD_TOOLS_DIR"
+          ln -s /usr/bin/aidl "$BUILD_TOOLS_DIR/aidl" || true
+          
+          # 🔱 Global Bypass Handshake
+          mkdir -p ~/.android && touch ~/.android/repositories.cfg
           yes | sdkmanager --licenses || true
-          
-          # 🔱 REFRESH & IGNITE
-          buildozer android clean
-          buildozer -v android debug 2>&1 | tee build_diagnostic.log
-          
-          # 🔱 EXTRACTION
-          mkdir -p export_bin
-          find . -name "*.apk" -exec cp {} export_bin/ \;
 
-      - name: 🔱 Upload Diagnostic Vault (Always)
+      - name: 🔱 Ignition (High-Pressure Build)
+        run: |
+          # Use 'yes' to feed the prompt and 'tee' to lock the logs
+          yes | buildozer -v android debug 2>&1 | tee build_diagnostic.log
+
+      - name: 🔱 Archive Diagnostic Vault
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_V2_2_4_LOGS
+          name: APEX_OVERDRIVE_LOGS
           path: build_diagnostic.log
 
       - name: 🔱 Release APEX GOLD MASTER
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V2_2_4
-          path: export_bin/*.apk
+          name: APEX_GOLD_MASTER_FINAL
+          path: bin/*.apk
