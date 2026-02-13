@@ -1,4 +1,4 @@
-name: 🔱 APEX CORE SOVEREIGN ARCHIVE FORGE (FINAL ALIGNMENT)
+name: 🔱 APEX CORE V2.4.0: SOVEREIGN SDK ALIGNMENT
 
 on:
   push:
@@ -15,34 +15,24 @@ jobs:
       - name: 🔱 SOURCE ACQUISITION
         uses: actions/checkout@v4
 
-      - name: 🔱 SDK FORCING PROTOCOL
+      - name: 🔱 SDK & AIDL FORCE PROTOCOL
         run: |
-          # Use local buildozer home instead of absolute root to ensure visibility
           export ANDROID_HOME="/home/user/.buildozer/android/platform/android-sdk"
           mkdir -p $ANDROID_HOME/build-tools/36.1.0
           echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
           chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
-          echo "36.1.0" > $ANDROID_HOME/build-tools/version
-          yes | sdkmanager --licenses || true
+          # Correcting the SDK level to 33 to satisfy the deprecation warning
+          yes | sdkmanager "build-tools;33.0.0" "platforms;android-33" || true
 
-      - name: 🔱 BUILD IGNITION
+      - name: 🔱 BUILD IGNITION (V2.4.0)
         run: |
-          # Clean and build using relative pathing to avoid exit code 1
-          buildozer android debug 2>&1 | tee build_diagnostic.log
+          buildozer android debug 2>&1 | tee build_v2_4_0.log
 
-      - name: 🔱 APEX GOLD MASTER EXTRACTION
-        if: always()
-        run: |
-          mkdir -p export_bin
-          # Deep-scan and pull all APKs into the export zone
-          find . -name "*.apk" -exec cp {} export_bin/ \;
-          ls -R export_bin
-
-      - name: 🔱 ARCHIVE SOVEREIGN ASSETS
+      - name: 🔱 GOLD MASTER ARCHIVE
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V2_3_0
+          name: APEX_GOLD_MASTER_V2_4_0
           path: |
-            export_bin/
-            build_diagnostic.log
+            bin/*.apk
+            build_v2_4_0.log
