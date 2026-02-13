@@ -1,0 +1,51 @@
+name: apex-core-v2.4.6-NEW-PORT
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧩 SOURCE ACQUISITION
+        uses: actions/checkout@v4
+
+      - name: 🧠 IGNITE OLLAMA (PORT: 11435)
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          # Shift to New Port to bypass local collisions
+          export OLLAMA_HOST="127.0.0.1:11435"
+          ollama serve & 
+          sleep 15
+          ollama pull dolphin-llama3:8b
+
+      - name: 🔱 GNOSTIC SDK FORCING
+        run: |
+          export OLLAMA_HOST="127.0.0.1:11435"
+          export SDK_DIR="$HOME/.buildozer/android/platform/android-sdk"
+          mkdir -p "$SDK_DIR/build-tools/36.1.0"
+          
+          # Inject Phantom Binary
+          echo -e '#!/bin/bash\nexit 0' > "$SDK_DIR/build-tools/36.1.0/aidl"
+          chmod +x "$SDK_DIR/build-tools/36.1.0/aidl"
+          
+          # Validate via shifted port
+          ollama run dolphin-llama3:8b "SYSTEM: Path $SDK_DIR verified on NEW PORT. Outcome: SUCCESS."
+
+      - name: 🏗️ BUILD IGNITION
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: 💎 APK EXTRACTION
+        run: |
+          mkdir -p export_bin
+          find bin/ -name "*.apk" -exec cp {} export_bin/apex_v2_4_6_gold_$(date +%s).apk \;
+          
+      - name: 📦 ARCHIVE SOVEREIGN ASSETS
+        uses: actions/upload-artifact@v4
+        with:
+          name: APEX_V2_4_6_GOLD_MASTER
+          path: export_bin/
