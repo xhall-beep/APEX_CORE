@@ -15,33 +15,28 @@ jobs:
 
       - name: SDK FORCING PROTOCOL
         run: |
+          # Define Home for clarity
           export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
-          export SDK_TOOLS_PATH="$ANDROID_HOME/cmdline-tools/latest/bin"
           
-          # ONLY clear logs and export bins, do NOT rm -rf .buildozer
-          rm -rf /root/export_bin /root/build.log
-          mkdir -p /root/export_bin
-          
-          # Force Path Creation for AIDL
+          # Manually satisfy the 36.1.0 AIDL requirement discovered in logs
           mkdir -p $ANDROID_HOME/build-tools/36.1.0
           echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
           chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
-          
-          # Force SDK 33 Alignment
-          yes | $SDK_TOOLS_PATH/sdkmanager "build-tools;33.0.0" "platforms;android-33" 2>/dev/null || true
 
       - name: BUILD IGNITION
         run: |
-          # Use -v to see the real-time forge and tee to the root log
+          mkdir -p /root/export_bin
+          
+          # Execute build and capture everything
           buildozer -v android debug 2>&1 | tee /root/build.log
           
-          # Optimized Extraction Logic
-          find bin/ -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
+          # DEEP SEARCH: Look in project bin/ and the internal .buildozer cache
+          find . -name "*.apk" -exec cp {} /root/export_bin/ \;
           
-          # Corrected Renaming Loop
-          for f in /root/export_bin/*.apk; do 
+          # Timestamp and clean
+          for f in /root/export_bin/*.apk; do
             if [ -f "$f" ]; then
-              mv "$f" "/root/export_bin/apex_v2_4_0_$(date +%s)_$(basename "$f")"
+              mv "$f" "/root/export_bin/apex_v2_4_0_$(date +%s).apk"
             fi
           done
 
