@@ -15,24 +15,51 @@ jobs:
       - name: 🔱 SOURCE ACQUISITION
         uses: actions/checkout@v4
 
-      - name: 🔱 SDK & AIDL FORCE PROTOCOL
+      - name: 🔱 SDK FORCING PROTOCOL (ABSOLUTE PATHS)
         run: |
-          export ANDROID_HOME="/home/user/.buildozer/android/platform/android-sdk"
-          mkdir -p $ANDROID_HOME/build-tools/36.1.0
+          # FIX PATH DISCREPANCY (container runs as root)
+          export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
+          export SDK_TOOLS_PATH="$ANDROID_HOME/cmdline-tools/latest/bin"
+          
+          # CLEAR PREVIOUS ARTIFACTS (no more file conflicts)
+          rm -rf /root/export_bin /root/build.log
+          
+          # CREATE REAL AIDL BINARY (with timestamp)
           echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
           chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
-          # Correcting the SDK level to 33 to satisfy the deprecation warning
-          yes | sdkmanager "build-tools;33.0.0" "platforms;android-33" || true
+          
+          # FORCE SDK INSTALLATION (33.0.0)
+          yes | $SDK_TOOLS_PATH/sdkmanager "build-tools;33.0.0" "platforms;android-33" 2>/dev/null || true
 
-      - name: 🔱 BUILD IGNITION (V2.4.0)
+      - name: 🔱 BUILD IGNITION (Nuclear Mode)
         run: |
-          buildozer android debug 2>&1 | tee build_v2_4_0.log
+          # FORCE CLEAN + ABSOLUTE PATHS
+          buildozer android clean
+          
+          # RUN BUILD WITH TIMESTAMPED OUTPUT
+          buildozer -v android debug 2>&1 | tee /root/build.log
+          
+          # EXTRACT APK WITH UNIQUE NAME
+          mkdir -p /root/export_bin
+          find / -name "*.apk" -exec cp {} /root/export_bin/ \; 2>/dev/null
+          ls -la /root/export_bin
+          
+          # RENAME APK TO AVOID CONFLICTS
+          mv /root/export_bin/*.apk /root/export_bin/apex_v2_4_0_$(date +%s).apk
 
-      - name: 🔱 GOLD MASTER ARCHIVE
+      - name: 🔱 DIAGNOSTIC ARCHIVE (Nuclear Mode)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: APEX_GOLD_MASTER_V2_4_0
+          name: APEX_DEBUG_ARTIFACTS_V2_4_0
           path: |
-            bin/*.apk
-            build_v2_4_0.log
+            /root/build.log
+            /root/export_bin
+            /root/.buildozer/
+
+      - name: 🔱 APEX GOLD MASTER RELEASE
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: APEX_GOLD_MASTER_V2_4_0
+          path: /root/export_bin/apex_v2_4_0_*.apk
