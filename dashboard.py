@@ -1,19 +1,40 @@
-import streamlit as st
 import os
+import time
 
-st.set_page_config(page_title="Sovereign Orchestrator", page_icon="🔱")
-st.title("🔱 Sovereign Command & Control")
+def load_version():
+    try:
+        with open('.current_version', 'r') as f:
+            return f.read().strip()
+    except:
+        return "UNKNOWN"
 
-st.sidebar.header("Agent Squad Status")
-st.sidebar.write("🟢 Closer Squad: ACTIVE (ROI 3.4:1)")
-st.sidebar.write("🟢 Prospecting Squad: SCANNING")
+def sovereign_ui():
+    version = load_version()
+    os.system('clear')
+    print(f"🔱 --- REECH INTERACTIVE DASHBOARD V{version} --- 🔱")
+    print(f"STATUS: [OPTIMAL] | HARDWARE: [TENSOR G3 BONDED]")
+    print("-" * 45)
+    print(f"CORE ASSET: apex_v2_4_6_gold.apk (18MB)")
+    print("-" * 45)
+    print(">>> COMMAND CENTER:")
+    print(" [1] Sync Closer Squad")
+    print(" [2] Audit Profit-Leaks")
+    print(" [3] Exit to Terminal")
+    print("-" * 45)
 
-st.header("Recursive Wealth Monitor")
-st.metric(label="Hard-Asset Anchor (10%)", value="$1,450.00", delta="+15%")
-
-if st.button('Trigger Sovereign Sync'):
-    os.system('sovereign-sync')
-    st.success("Cloud Synchronized.")
-
-if st.button('Execute Secret Knowledge Audit'):
-    st.info("Scanning for 3:1 ROI Gaps...")
+if __name__ == "__main__":
+    while True:
+        sovereign_ui()
+        cmd = input("SOVEREIGN_INPUT > ")
+        if cmd == "1":
+            print("🚀 Initiating Squad Sync...")
+            time.sleep(2)
+        elif cmd == "2":
+            print("🔍 Auditing ROI...")
+            time.sleep(2)
+        elif cmd == "3":
+            print("🔱 Reech returning to shadow mode.")
+            break
+        else:
+            print("⚠️ Unknown Command.")
+            time.sleep(1)
