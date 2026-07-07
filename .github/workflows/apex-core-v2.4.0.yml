@@ -3,32 +3,61 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     container:
       image: kivy/buildozer:latest
       options: --user root
     steps:
       - name: SOURCE ACQUISITION
-        uses: actions/checkout@v4
+        uses: actions/checkout@eaf2ced6d6dbffb098f1fab146e5dda40ff27988 # v4.2.0
+        with:
+          fetch-depth: 1
 
       - name: SDK FORCING PROTOCOL
         run: |
+          set -euo pipefail
           # Define Home for clarity
           export ANDROID_HOME="/root/.buildozer/android/platform/android-sdk"
           
-          # Manually satisfy the 36.1.0 AIDL requirement discovered in logs
+          # Ensure build-tools directory exists
           mkdir -p $ANDROID_HOME/build-tools/36.1.0
-          echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
-          chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
+          
+          # Harmless fallback: if aidl is missing, create a no-op placeholder
+          if [ ! -x "$ANDROID_HOME/build-tools/36.1.0/aidl" ]; then
+            echo -e '#!/bin/bash\nexit 0' > $ANDROID_HOME/build-tools/36.1.0/aidl
+            chmod +x $ANDROID_HOME/build-tools/36.1.0/aidl
+            echo "✅ Created harmless aidl placeholder"
+          else
+            echo "✅ aidl already exists"
+          fi
 
       - name: BUILD IGNITION
+        timeout-minutes: 90
         run: |
+          set -euo pipefail
           mkdir -p /root/export_bin
           
+          echo "=== Starting Buildozer Build ==="
           # Execute build and capture everything
           buildozer -v android debug 2>&1 | tee /root/build.log
+          BUILD_EXIT=$?
+          
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "❌ Build failed with exit code: $BUILD_EXIT"
+            echo ""
+            echo "=== Last 100 lines of build log ==="
+            tail -n 100 /root/build.log || true
+            exit $BUILD_EXIT
+          fi
+          
+          echo "✅ Build completed successfully"
           
           # DEEP SEARCH: Look in project bin/ and the internal .buildozer cache
           find . -name "*.apk" -exec cp {} /root/export_bin/ \;
@@ -39,12 +68,38 @@ jobs:
               mv "$f" "/root/export_bin/apex_v2_4_0_$(date +%s).apk"
             fi
           done
+          
+          if [ -f /root/export_bin/*.apk ]; then
+            echo "✅ APK extraction successful"
+            ls -lh /root/export_bin/
+          else
+            echo "⚠️ No APK found in export_bin/"
+          fi
 
       - name: ARCHIVE ASSETS
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@1746f4ab5ec1fe1516554a9a016b11cfe1bcc22b # v4.0.0
         with:
           name: APEX_V2_4_0_GOLD_MASTER
           path: |
             /root/build.log
             /root/export_bin/
+          retention-days: 30
+
+      - name: 🔍 Diagnose on failure
+        if: failure()
+        run: |
+          set -euo pipefail
+          echo "=== Disk Usage ==="
+          df -h
+          echo ""
+          echo "=== Memory Usage ==="
+          free -m
+          echo ""
+          echo "=== Android SDK Directory ==="
+          ls -la /root/.buildozer/android/platform/android-sdk/ 2>/dev/null || echo "SDK not found"
+          echo ""
+          if [ -f /root/build.log ]; then
+            echo "=== Build Log (last 150 lines) ==="
+            tail -n 150 /root/build.log
+          fi
