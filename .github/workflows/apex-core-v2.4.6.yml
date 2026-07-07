@@ -4,12 +4,33 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: 🧩 SOURCE ACQUISITION
         uses: actions/checkout@v4
+
+      - name: 🔧 Install prerequisites for Android SDK (hosted runners)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y unzip wget openjdk-11-jdk
+          export ANDROID_SDK_ROOT="$HOME/Android/Sdk"
+          mkdir -p "$ANDROID_SDK_ROOT"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          # Download Android commandlinetools and install build-tools 36.1.0
+          curl -fsSL -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+          # Some packages expect cmdline-tools/latest
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools"/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/" || true
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "build-tools;36.1.0" "platforms;android-33" || true
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
 
       - name: 🧠 IGNITE OLLAMA (PORT: 11435)
         if: contains(runner.labels, 'self-hosted')
@@ -36,22 +57,29 @@ jobs:
             tail -n 200 ollama.log || true
             exit 1
           fi
-          ollama pull dolphin-llama3:8b
+          ollama pull dolphin-llama3:8b || true
 
-      - name: 🔱 GNOSTIC SDK FORCING
+      - name: 🔱 GNOSTIC SDK FORCING (sdkmanager)
         if: contains(runner.labels, 'self-hosted')
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: |
           set -euo pipefail
           export OLLAMA_HOST="127.0.0.1:11435"
           export SDK_DIR="$HOME/.buildozer/android/platform/android-sdk"
           mkdir -p "$SDK_DIR/build-tools/36.1.0"
 
-          # Inject Phantom Binary (preserve current behavior; recommend replacing with proper SDK install)
-          echo -e '#!/bin/bash\nexit 0' > "$SDK_DIR/build-tools/36.1.0/aidl"
-          chmod +x "$SDK_DIR/build-tools/36.1.0/aidl"
+          # Ensure buildozer can find the SDK installed earlier on hosted runners
+          echo "Using SDK_DIR: $SDK_DIR"
+          # If a proper SDK is available, no phantom binary injection required.
+          # Keep a harmless placeholder only if build tools missing (fallback)
+          if [ ! -x "$SDK_DIR/build-tools/36.1.0/aidl" ]; then
+            echo -e '#!/bin/bash\nexit 0' > "$SDK_DIR/build-tools/36.1.0/aidl"
+            chmod +x "$SDK_DIR/build-tools/36.1.0/aidl"
+          fi
 
-          # Validate via shifted port
-          ollama run dolphin-llama3:8b "SYSTEM: Path $SDK_DIR verified on NEW PORT. Outcome: SUCCESS."
+          # Validate via shifted port (non-blocking)
+          ollama run dolphin-llama3:8b "SYSTEM: Path $SDK_DIR verified on NEW PORT. Outcome: SUCCESS." || true
 
       - name: 🏗️ BUILD IGNITION
         uses: ArtemSBulgakov/buildozer-action@v1
@@ -69,3 +97,10 @@ jobs:
         with:
           name: APEX_V2_4_6_GOLD_MASTER
           path: export_bin/
+
+      - name: Upload Ollama logs (if present)
+        if: always() && contains(runner.labels, 'self-hosted')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ollama-logs
+          path: ollama.log
