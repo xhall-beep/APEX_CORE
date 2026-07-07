@@ -1,0 +1,41 @@
+name: ci-debug-collector
+on:
+  workflow_run:
+    workflows: ["apex-core-v2.4.6-NEW-PORT", "apex-core-v2.4.6"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Checkout workspace (minimal)
+        uses: actions/checkout@v4
+
+      - name: Gather runner diagnostics
+        run: |
+          set -euo pipefail
+          mkdir -p debug-collector
+          uname -a > debug-collector/uname.txt || true
+          lsb_release -a > debug-collector/lsb_release.txt 2>/dev/null || true
+          echo "env:" > debug-collector/env.txt; env >> debug-collector/env.txt || true
+          df -h > debug-collector/df.txt || true
+          free -m > debug-collector/free.txt || true
+
+      - name: Collect possible logs
+        run: |
+          mkdir -p debug-collector/logs
+          # typical runner log paths (best-effort, may be non-existent)
+          if [ -f /var/log/syslog ]; then sudo cp /var/log/syslog debug-collector/logs/ || true; fi
+          if [ -f /var/log/messages ]; then sudo cp /var/log/messages debug-collector/logs/ || true; fi
+          [ -f ollama.log ] && cp ollama.log debug-collector/logs/ || true
+          # collect build outputs if they exist
+          cp -r bin debug-collector/ 2>/dev/null || true
+          cp -r .gradle debug-collector/ 2>/dev/null || true
+
+      - name: Upload debug artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-debug-collector-${{ github.event.workflow_run.id }}
+          path: debug-collector/
