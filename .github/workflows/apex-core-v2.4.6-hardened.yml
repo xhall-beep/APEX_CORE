@@ -1,0 +1,189 @@
+name: apex-core-v2.4.6-HARDENED
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+  GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
+  BUILDOZER_BUILD_DIR: ${{ github.workspace }}/.buildozer
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: 🧩 SOURCE ACQUISITION
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🔧 Install system prerequisites
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y
+          sudo apt-get install -y \
+            unzip wget openjdk-11-jdk \
+            build-essential git python3-dev python3-pip \
+            libffi-dev libssl-dev libjpeg-dev zlib1g-dev
+
+      - name: 📦 Install Python & Buildozer dependencies
+        run: |
+          set -euo pipefail
+          python3 -m pip install --upgrade pip setuptools wheel
+          python3 -m pip install buildozer Cython numpy
+
+      - name: 🎯 Setup Android SDK (hosted runners)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_SDK_ROOT"
+          echo "Downloading Android SDK command-line tools..."
+          curl -fsSL -o /tmp/cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q /tmp/cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools"/* "$ANDROID_SDK_ROOT/cmdline-tools/latest/" || true
+          
+          # Install build-tools and platforms
+          echo "Installing Android build-tools and platforms..."
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
+            "platform-tools" \
+            "build-tools;36.1.0" \
+            "platforms;android-33" \
+            "platforms;android-34" \
+            "cmake;3.22.1" 2>&1 | grep -v "^Warning" || true
+          
+          # Verify installation
+          ls -la "$ANDROID_SDK_ROOT/build-tools/36.1.0/" || echo "Warning: build-tools not found"
+          ls -la "$ANDROID_SDK_ROOT/platforms/" || echo "Warning: platforms not found"
+          
+          # Export paths
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+
+      - name: 🧠 Setup OLLAMA (self-hosted only)
+        if: contains(runner.labels, 'self-hosted')
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          echo "Installing Ollama on self-hosted runner..."
+          curl -fsSL https://ollama.com/install.sh | sh || true
+          
+          export OLLAMA_HOST="127.0.0.1:11435"
+          echo "OLLAMA_HOST=$OLLAMA_HOST" >> $GITHUB_ENV
+          
+          # Start Ollama in background with logs
+          nohup ollama serve > ollama.log 2>&1 &
+          OLLAMA_PID=$!
+          echo "Ollama started with PID: $OLLAMA_PID"
+          
+          # Wait for readiness (30 seconds, 1-sec intervals)
+          READY=0
+          for i in $(seq 1 30); do
+            if curl -sfS "http://127.0.0.1:11435/health" >/dev/null 2>&1; then
+              echo "✅ OLLAMA ready after $i seconds"
+              READY=1
+              break
+            fi
+            echo "Waiting for Ollama... ($i/30)"
+            sleep 1
+          done
+          
+          if [ "$READY" -ne 1 ]; then
+            echo "❌ OLLAMA failed to become ready. Last 50 lines of logs:"
+            tail -n 50 ollama.log || true
+            exit 1
+          fi
+          
+          # Pull model (non-blocking)
+          echo "Pulling Ollama model (non-blocking)..."
+          timeout 120 ollama pull dolphin-llama3:8b || echo "⚠️ Model pull timed out or failed"
+
+      - name: 🏗️ BUILD APEX with Buildozer
+        timeout-minutes: 90
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          GRADLE_USER_HOME: ${{ env.GRADLE_USER_HOME }}
+        run: |
+          set -euo pipefail
+          echo "=== Build Environment ==="
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "GRADLE_USER_HOME: $GRADLE_USER_HOME"
+          echo "PATH: $PATH"
+          which sdkmanager || echo "sdkmanager not in PATH"
+          which aapt || echo "aapt not in PATH (will be pulled by buildozer)"
+          
+          echo ""
+          echo "=== Starting Buildozer Build ==="
+          buildozer android debug 2>&1 | tee build.log
+          BUILD_EXIT=$?
+          
+          if [ $BUILD_EXIT -ne 0 ]; then
+            echo "❌ Build failed with exit code: $BUILD_EXIT"
+            echo ""
+            echo "=== Last 100 lines of build log ==="
+            tail -n 100 build.log || true
+            exit $BUILD_EXIT
+          fi
+          
+          echo "✅ Build completed successfully"
+
+      - name: 💎 Extract APK
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p export_bin
+          if find bin -name "*.apk" -print -quit 2>/dev/null | grep -q .; then
+            find bin -name "*.apk" -exec cp {} export_bin/apex_v2_4_6_$(date +%s).apk \;
+            echo "✅ APK(s) extracted to export_bin/"
+            ls -lh export_bin/
+          else
+            echo "⚠️ No APK found in bin/ directory"
+          fi
+
+      - name: 📦 Upload APK artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: APEX_V2_4_6_APK
+          path: export_bin/
+          retention-days: 30
+
+      - name: 📋 Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs-${{ github.run_id }}
+          path: |
+            build.log
+            ollama.log
+          retention-days: 7
+
+      - name: 🔍 Diagnose on failure
+        if: failure()
+        run: |
+          set -euo pipefail
+          echo "=== Disk Usage ==="
+          df -h
+          echo ""
+          echo "=== Memory Usage ==="
+          free -m
+          echo ""
+          echo "=== Android SDK Directory ==="
+          ls -la "$ANDROID_SDK_ROOT/" || echo "SDK root not found"
+          echo ""
+          echo "=== Gradle Cache ==="
+          ls -la "$GRADLE_USER_HOME/" 2>/dev/null || echo "Gradle cache not found"
+          echo ""
+          if [ -f build.log ]; then
+            echo "=== Build Log (last 150 lines) ==="
+            tail -n 150 build.log
+          fi
+          if [ -f ollama.log ]; then
+            echo "=== Ollama Log (last 50 lines) ==="
+            tail -n 50 ollama.log
+          fi
