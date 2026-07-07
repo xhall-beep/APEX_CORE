@@ -12,24 +12,44 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧠 IGNITE OLLAMA (PORT: 11435)
+        if: contains(runner.labels, 'self-hosted')
         run: |
+          set -euo pipefail
+          echo "Installing Ollama..."
           curl -fsSL https://ollama.com/install.sh | sh
-          # Shift to New Port to bypass local collisions
           export OLLAMA_HOST="127.0.0.1:11435"
-          ollama serve & 
-          sleep 15
+          # start server in background and capture logs
+          nohup ollama serve > ollama.log 2>&1 &
+          # wait for server readiness (poll health endpoint)
+          READY=0
+          for i in $(seq 1 30); do
+            if curl -sfS "http://127.0.0.1:11435/health" >/dev/null 2>&1; then
+              echo "OLLAMA ready after $i attempts"
+              READY=1
+              break
+            fi
+            echo "OLLAMA not ready yet (attempt $i/30), sleeping 5s..."
+            sleep 5
+          done
+          if [ "$READY" -ne 1 ]; then
+            echo "OLLAMA failed to become ready — showing last 200 lines of logs"
+            tail -n 200 ollama.log || true
+            exit 1
+          fi
           ollama pull dolphin-llama3:8b
 
       - name: 🔱 GNOSTIC SDK FORCING
+        if: contains(runner.labels, 'self-hosted')
         run: |
+          set -euo pipefail
           export OLLAMA_HOST="127.0.0.1:11435"
           export SDK_DIR="$HOME/.buildozer/android/platform/android-sdk"
           mkdir -p "$SDK_DIR/build-tools/36.1.0"
-          
-          # Inject Phantom Binary
+
+          # Inject Phantom Binary (preserve current behavior; recommend replacing with proper SDK install)
           echo -e '#!/bin/bash\nexit 0' > "$SDK_DIR/build-tools/36.1.0/aidl"
           chmod +x "$SDK_DIR/build-tools/36.1.0/aidl"
-          
+
           # Validate via shifted port
           ollama run dolphin-llama3:8b "SYSTEM: Path $SDK_DIR verified on NEW PORT. Outcome: SUCCESS."
 
@@ -43,7 +63,7 @@ jobs:
         run: |
           mkdir -p export_bin
           find bin/ -name "*.apk" -exec cp {} export_bin/apex_v2_4_6_gold_$(date +%s).apk \;
-          
+
       - name: 📦 ARCHIVE SOVEREIGN ASSETS
         uses: actions/upload-artifact@v4
         with:
