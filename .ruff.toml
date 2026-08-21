@@ -1,0 +1,4 @@
+# Lint scope for APEX_CORE: first-party code only.
+# tools/ (lowercase) and TOOLS/ are vendored third-party trees (8k+ files);
+# they must never gate our CI. extend-exclude composes with CLI --exclude flags.
+extend-exclude = ["tools", "TOOLS", "build_staging", "legacy_vault", "deliveries"]
