@@ -1,0 +1,57 @@
+name: APEX_CORE CI
+
+# Slim, honest CI: lints and compile-checks only first-party code.
+# It deliberately does NOT run `pytest tests/` — there is no tests/ directory,
+# so a pytest step would either fail or be faked green with `|| true`. When real
+# tests exist under tests/, add a pytest job here as a genuine gate.
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    name: Lint & Compile Check (first-party only)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install linters
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Ruff lint (first-party, non-blocking style)
+        run: |
+          ruff check . \
+            --exclude TOOLS \
+            --exclude build_staging \
+            --exclude legacy_vault \
+            --exclude deliveries \
+            --select E9,F63,F7,F82 \
+            --output-format=github
+
+      - name: Byte-compile all first-party modules
+        run: |
+          shopt -s nullglob
+          fail=0
+          for f in ./*.py; do
+            python -m py_compile "$f" || { echo "::error file=$f::failed to compile"; fail=1; }
+          done
+          exit $fail
+          
