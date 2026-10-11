@@ -1,4 +1,0 @@
-getsystem
-run migrate -n wininit.exe
-sysinfo
-getuid
