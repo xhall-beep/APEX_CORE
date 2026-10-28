@@ -1,0 +1,7 @@
+PASS  1 dispatch returns a real bus id found in list_tasks — id=1 rows=1
+PASS  2 complete_task moves bus counts to done=1 — result={'id': 1, 'claimed': True, 'done': True, 'state': 'done'} before_new=1 after={'new': 0, 'claimed': 0, 'done': 1}
+PASS  3 verify_chain reports INTACT on the untouched chain — verdict={'ok': True, 'verdict': 'INTACT', 'bad_rows': [], 'mesh_dir': '/tmp/apex-core-test.pv7urazx', 'db': '/tmp/apex-core-test.pv7urazx/bus.db'}
+PASS  4 verify_chain reports TAMPERED after a direct sqlite edit — verdict={'ok': False, 'verdict': 'TAMPERED', 'bad_rows': [1], 'mesh_dir': '/tmp/apex-core-test.pv7urazx', 'db': '/tmp/apex-core-test.pv7urazx/bus.db'}
+PASS  5 empty dispatch is rejected and posts nothing — total before=1 after=1
+
+5/5 checks passed (throwaway MESH_DIR: /tmp/apex-core-test.pv7urazx)
