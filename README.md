@@ -7,8 +7,8 @@ result.
 Repo layout note: this repository also carries a large archive of
 vendored tooling from its earlier life (`tools/`, `TOOLS/`,
 `legacy_vault/` — tens of thousands of third-party files, kept as-is).
-The working, verified code in this repo is **`console.py`** (with
-`test_console.py`); the old Kivy `main.py` is superseded by it. This
+The working, verified code in this repo is **`console.py`** +
+**`scionix_core.py`** (with `test_console.py` + `test_scionix.py`); the old Kivy `main.py` is superseded by them. This
 upgrade also removed the accumulated log files (`dashboard.log`, the
 build logs, `vault_intents.log`, `logs/sync_log.md`) and a stray `rsa`
 file from the tree — all remain in git history.
@@ -46,6 +46,25 @@ This console *moves* tasks on the bus — post, claim, complete, audit.
 It deliberately never runs the bus's exec tier: executing a task is a
 worker's job, not the console's.
 
+## The engine: `scionix_core.py`
+
+**Added 2026-10-28 (vision build).** The original repo's artefacts —
+a "wealth audit" returning a hardcoded string, a status card that
+auto-generated "Health Score: 100%" — described an engine,
+`scionix_core.py`, that was never written. It exists now:
+
+| Engine piece | What it really does |
+|---|---|
+| Agent registry | `register_agent` / `heartbeat` / `list_agents`, persisted to `registry.json` in the bus dir; every registration and heartbeat is also posted to the bus (kind `registry`), and listings annotate each agent fresh/stale from its actual last heartbeat |
+| Sync | `sync_state()` folds the bus's registry rows into the local store behind a persisted watermark — any node holding the bus file can rebuild the registry; the bus is the truth, `registry.json` is a cache. `export_state()` snapshots registry + watermark + bus counts for cross-node diffing |
+| Dispatch + results | `dispatch()` posts sealed task rows; workers claim/done through the bus and answer with `submit_result()` (kind `result` rows on the same seal chain); `collect_results()` / `task_status()` derive outcomes from bus state at read time |
+| Health audit | `health_audit()` **computes** a 0–100 score from six checks it runs live: bus DB present (10), seal chain verifies (30), bus responsive (10), engine files present (15), registry store valid (10), registry freshness (25, pro-rated). A tampered bus loses the 30 seal points; stale heartbeats lose freshness points. No check passes without running |
+| Sales audit | `sales_audit()` reads real local data when present (env `APEX_SALES_FILE`, else the estate claims ledger `~/workspace/capability-stack/claims.csv`, else `claims.csv`/`sales.json` beside the engine) and reports the figures it parsed. When no file exists: `available: False`, figures `None`, detail says "no data". It never invents a number — the exact opposite of the original's hardcoded "Profit-Leak Status: 0.00% (Optimal)" |
+
+The console fronts the engine with `agents`, `register`, `heartbeat`,
+`sync`, and `audit` commands (one-shot `--cmd` and interactive), all
+calling the same engine functions.
+
 ## Run it
 
 Python 3 standard library only, $0, no installs.
@@ -59,6 +78,11 @@ python3 console.py --cmd dispatch --text "summarize today" --for exec
 python3 console.py --cmd list
 python3 console.py --cmd complete --id 1
 python3 console.py --cmd verify        # exit code 1 if the chain is TAMPERED
+python3 console.py --cmd register --name scout --role recon
+python3 console.py --cmd agents
+python3 console.py --cmd heartbeat --name scout
+python3 console.py --cmd sync
+python3 console.py --cmd audit         # computed health + sales figures
 
 # interactive terminal UI (same control layer, a loop around it)
 python3 console.py
@@ -84,6 +108,7 @@ e.g. a real estate bus on the phone.
 
 ```bash
 python3 test_console.py
+python3 test_scionix.py
 ```
 
 Hermetic: the test points `MESH_DIR` at a throwaway temp directory and
@@ -92,6 +117,15 @@ id, claim+complete moves the counts to `done=1`, `verify_chain` says
 INTACT, a direct sqlite tamper makes it say TAMPERED and name the row,
 and an empty dispatch is rejected. Verbatim output of the original
 passing run is in `TEST-OUTPUT.txt`.
+
+`test_scionix.py` verifies the engine the same way: registry
+round-trip with persistence and freshness ageing, sync rebuilding a
+wiped registry from bus rows (and staying incremental), a
+dispatch→claim/done→result round trip, a health audit that scores a
+healthy fixture at 100 and drops exactly the seal check's 30 points
+after a sqlite tamper (and freshness points when heartbeats go stale),
+and a sales audit that reports "no data" with `None` figures when no
+file exists and sums a fixture CSV exactly when one does.
 
 ## On the phone
 
@@ -113,3 +147,10 @@ One portability fix ships with this upgrade: the bus library lookup now
 accepts a sibling checkout named either `apexyx-sovereign` or
 `ApexYX-Sovereign` (the canonical repo name); `APEX_BUS_PATH` still
 overrides it.
+
+Vision build, same day: `python3 test_scionix.py` → **12/12 checks
+passed** for the new engine, with `test_console.py` still 5/5 after
+the console wiring. A live CLI smoke run (register two agents,
+heartbeat, sync, dispatch, audit) also passed, and the sales audit
+read the estate's real claims ledger and reported its actual parsed
+figure.

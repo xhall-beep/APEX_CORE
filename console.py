@@ -13,6 +13,18 @@ to a real operation on the verified ApexYX bus (tier 1, ``mesh_bus.py``):
   verify    -> bus.verify()    walks the sha256 seal chain, names bad rows
   health    -> bus.status()    real counts by state and kind
 
+Behind the bus controls sits the engine, ``scionix_core.py`` — the
+module the original repo specified but never wrote. The console fronts
+it too:
+
+  agents    -> engine.list_agents()    the persisted agent registry
+  register  -> engine.register_agent() register + announce on the bus
+  heartbeat -> engine.heartbeat()      freshness proof for one agent
+  sync      -> engine.sync_state()     rebuild the registry from the bus
+  audit     -> engine.full_audit()     a health score COMPUTED from real
+                                       checks + a sales audit that reads
+                                       real data files or says "no data"
+
 No label-only actions, no canned output: every function returns what the
 bus actually did, and raises a real error when the bus refuses.
 
@@ -23,6 +35,11 @@ Usage:
     python3 console.py --cmd list [--n 20]
     python3 console.py --cmd complete --id 7
     python3 console.py --cmd verify
+    python3 console.py --cmd agents
+    python3 console.py --cmd register --name scout --role recon
+    python3 console.py --cmd heartbeat --name scout
+    python3 console.py --cmd sync
+    python3 console.py --cmd audit
 
     # interactive terminal UI
     python3 console.py
@@ -224,6 +241,45 @@ def bus_health(mesh_dir_arg=None):
     }
 
 
+# ---------------------------------------------------------------- engine layer
+# scionix_core.py is the engine the original repo never wrote: agent
+# registry, bus sync, dispatch/result plumbing, and audits computed
+# from real checks. Imported lazily so the bus controls above keep
+# working even if the engine file is absent (the health audit's
+# engine-files check exists precisely to catch that state).
+
+def _engine():
+    sys.path.insert(0, HERE)
+    import scionix_core
+    return scionix_core
+
+
+def engine_agents(mesh_dir_arg=None):
+    """The engine's agent registry, freshness-annotated at read time."""
+    return _engine().list_agents(mesh_dir_arg=mesh_dir_arg)
+
+
+def engine_register(name, role="", mesh_dir_arg=None):
+    """Register an agent in the engine registry (persisted + on-bus)."""
+    return _engine().register_agent(name, role=role,
+                                    mesh_dir_arg=mesh_dir_arg)
+
+
+def engine_heartbeat(name, mesh_dir_arg=None):
+    """Record a heartbeat for a registered agent via the engine."""
+    return _engine().heartbeat(name, mesh_dir_arg=mesh_dir_arg)
+
+
+def engine_sync(mesh_dir_arg=None):
+    """Fold the bus's registry rows into the local registry store."""
+    return _engine().sync_state(mesh_dir_arg=mesh_dir_arg)
+
+
+def engine_audit(mesh_dir_arg=None):
+    """The engine's full audit: computed health + honest sales figures."""
+    return _engine().full_audit(mesh_dir_arg=mesh_dir_arg)
+
+
 # ---------------------------------------------------------------- presentation
 
 def _fmt_task(row):
@@ -271,6 +327,37 @@ def run_cmd(args):
     if args.cmd == "health":
         print(json.dumps(bus_health(mesh_dir_arg=md), indent=2))
         return 0
+    if args.cmd == "agents":
+        agents = engine_agents(mesh_dir_arg=md)
+        for a in agents:
+            print("%s [%s] role=%s last-heartbeat %ss ago" % (
+                a["name"], a["status"], a.get("role") or "-",
+                a["age_seconds"]))
+        print("(%d agent(s))" % len(agents))
+        return 0
+    if args.cmd == "register":
+        try:
+            rec = engine_register(args.name, role=args.role,
+                                  mesh_dir_arg=md)
+        except ValueError as exc:
+            print("error: %s" % exc, file=sys.stderr)
+            return 2
+        print(json.dumps(rec, indent=2))
+        return 0
+    if args.cmd == "heartbeat":
+        try:
+            rec = engine_heartbeat(args.name, mesh_dir_arg=md)
+        except LookupError as exc:
+            print("error: %s" % exc, file=sys.stderr)
+            return 1
+        print(json.dumps(rec, indent=2))
+        return 0
+    if args.cmd == "sync":
+        print(json.dumps(engine_sync(mesh_dir_arg=md), indent=2))
+        return 0
+    if args.cmd == "audit":
+        print(json.dumps(engine_audit(mesh_dir_arg=md), indent=2))
+        return 0
     print("error: unknown --cmd %r" % args.cmd, file=sys.stderr)
     return 2
 
@@ -281,6 +368,11 @@ HELP = """commands:
   complete <id>          claim + done a task through the bus
   verify                 walk the seal chain (INTACT / TAMPERED)
   health                 bus counts by state and kind
+  agents                 the engine's agent registry (freshness shown)
+  register <name> [role] register an agent in the engine registry
+  heartbeat <name>       record a heartbeat for a registered agent
+  sync                   rebuild the registry from the bus's rows
+  audit                  engine audit: computed health + sales figures
   help                   this text
   quit / exit            leave"""
 
@@ -327,6 +419,28 @@ def interactive(mesh_dir_arg=None, node=DEFAULT_NODE):
                 ))
             elif cmd == "health":
                 print(json.dumps(bus_health(), indent=2))
+            elif cmd == "agents":
+                agents = engine_agents()
+                for a in agents:
+                    print("%s [%s] role=%s last-heartbeat %ss ago" % (
+                        a["name"], a["status"], a.get("role") or "-",
+                        a["age_seconds"]))
+                print("(%d agent(s))" % len(agents))
+            elif cmd == "register":
+                bits = rest.split(None, 1)
+                if not bits:
+                    print("error: register needs an agent name")
+                else:
+                    rec = engine_register(
+                        bits[0], role=bits[1] if len(bits) > 1 else "")
+                    print("registered %s" % rec["name"])
+            elif cmd == "heartbeat":
+                rec = engine_heartbeat(rest)
+                print("heartbeat recorded for %s" % rec["name"])
+            elif cmd == "sync":
+                print(json.dumps(engine_sync()))
+            elif cmd == "audit":
+                print(json.dumps(engine_audit(), indent=2))
             else:
                 print("unknown command %r — type 'help'" % cmd)
         except (ValueError, LookupError, RuntimeError) as exc:
@@ -338,9 +452,14 @@ def main(argv=None):
         description="APEX Core console — a real console over the ApexYX bus"
     )
     ap.add_argument("--cmd", choices=["dispatch", "list", "complete",
-                                      "claim", "verify", "health"],
+                                      "claim", "verify", "health",
+                                      "agents", "register", "heartbeat",
+                                      "sync", "audit"],
                     help="one-shot mode: run one control and exit")
     ap.add_argument("--text", default="", help="task text (dispatch)")
+    ap.add_argument("--name", default="",
+                    help="agent name (register / heartbeat)")
+    ap.add_argument("--role", default="", help="agent role (register)")
     ap.add_argument("--for", dest="for_target", default="",
                     help="task target node (dispatch)")
     ap.add_argument("--id", type=int, default=0,

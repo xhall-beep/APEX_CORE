@@ -5,3 +5,19 @@ PASS  4 verify_chain reports TAMPERED after a direct sqlite edit — verdict={'o
 PASS  5 empty dispatch is rejected and posts nothing — total before=1 after=1
 
 5/5 checks passed (throwaway MESH_DIR: /tmp/apex-core-test.pv7urazx)
+
+=== test_scionix.py — vision build, 2026-10-28 ===
+PASS  1 registry round-trip persists and re-reads — agents={'alpha': {'capabilities': ['code'], 'heartbeats': 2, 'last_heartbeat': 1800000010, 'name': 'alpha', 'node': 'pixel', 'registered_ts': 1800000000, 'role': 'builder', 'age_seconds': 10, 'status': 'fresh'}, 'beta': {'capabilities': [], 'heartbeats': 1, 'last_heartbeat': 1800000000, 'name': 'beta', 'node': '', 'registered_ts': 1800000000, 'role': 'scout', 'age_seconds': 20, 'status': 'fresh'}}
+PASS  1b freshness annotation ages honestly — statuses={'alpha': 'stale', 'beta': 'stale'}
+PASS  1c heartbeat for an unknown agent raises LookupError
+PASS  2 sync rebuilds the registry from bus rows — summary={'applied': 3, 'agents': ['alpha', 'beta'], 'watermark': 3} rebuilt={'alpha', 'beta'}
+PASS  2b second sync is incremental (nothing new to apply) — again={'applied': 0, 'agents': ['alpha', 'beta'], 'watermark': 3}
+PASS  3 dispatch -> claim/done -> collected result — tid=4 results=[{'result_id': 5, 'task_id': 4, 'ok': True, 'detail': 'smoke done', 'by': 'beta', 'ts': 1793233723}] status={'id': 4, 'state': 'done', 'claimed_by': 'beta', 'result': {'result_id': 5, 'task_id': 4, 'ok': True, 'detail': 'smoke done', 'by': 'beta', 'ts': 1793233723}}
+PASS  3b empty dispatch raises ValueError
+PASS  4 health audit: healthy fixture earns a high score — score=100 checks={'bus_db_present': 10, 'bus_seal_chain': 30, 'bus_responsive': 10, 'engine_files_present': 15, 'registry_store_valid': 10, 'registry_freshness': 25}
+PASS  4b tampered bus fails the seal check and lowers the score — healthy=100 damaged=70
+PASS  4c stale heartbeats earn no freshness points — stale_score=45
+PASS  5 sales audit reports no data honestly — nodata={'available': False, 'source': None, 'claims_total': None, 'paths_tried': ['/tmp/apex-core-engine-test.lopb472e/definitely-absent.csv'], 'detail': 'no data: no claims/sales data file found at any candidate path'}
+PASS  5b sales audit sums a real fixture exactly — real={'available': True, 'source': '/tmp/apex-core-engine-test.lopb472e/claims-fixture.csv', 'rows': 2, 'claims_total': 7, 'latest_row': {'date': '2026-10-28', 'verified_claims_total': '4', 'source': 'fixture'}, 'detail': "summed column 'verified_claims_total' over 2 parseable row(s)"}
+
+12/12 checks passed (throwaway MESH_DIR: /tmp/apex-core-engine-test.lopb472e)
