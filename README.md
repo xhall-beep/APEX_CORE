@@ -154,3 +154,17 @@ the console wiring. A live CLI smoke run (register two agents,
 heartbeat, sync, dispatch, audit) also passed, and the sales audit
 read the estate's real claims ledger and reported its actual parsed
 figure.
+
+---
+
+## Quickstart (2026-11-06)
+
+The working console (`console.py` + `scionix_core.py`) is **Python 3 standard library only — no pip installs needed** to run it:
+
+```
+python3 console.py --cmd health
+```
+
+**Required layout:** the console imports `mesh_bus.py` from a sibling checkout of **ApexYX-Sovereign** cloned next door (`../ApexYX-Sovereign`), or set `APEX_BUS_PATH` to point at it. A lone clone of this repo will not run until that sibling (or the env var) is in place.
+
+**About `requirements.txt`:** the `requirements.txt` in this repo serves **only the legacy Kivy app** (superseded). Do not install it for the console — it pulls in heavy legacy dependencies (Kivy, pandas, scikit-learn) the working code does not use.
